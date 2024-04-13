@@ -1,0 +1,473 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Escola {
+  id                      Int     @id() @default(autoincrement())
+  Nome_Escola             String? @db.VarChar(150)
+  nomeFantazia            String? @db.VarChar(150)
+  Endereco_Escola         String?
+  EntidadeMatenedora      String? @db.VarChar(100)
+  Secretaria              String? @db.VarChar(100)
+  CNPJ_Escola             String?
+  CadastroMEC             String? @db.VarChar(30)
+  LocalFotoEscola         String? @db.VarChar(70)
+  NomeFotoEscola          String?
+  Diretor                 String?
+  Secretario              String?
+  CoordPedag              String?
+  LocalFotoAluno          String? @db.VarChar(200)
+  Config_Servidor         String? @db.VarChar(200)
+  Email_Escola            String?
+  Pagina_RedeSocialEscola String?
+  DocAut_dir              String?
+  DocAut_Sec              String?
+  Tipo_Escola             String?
+  NivelEscolar            String?
+
+  matricula Matricula?
+  endereco  Endereco   @relation(fields: [enderecoId], references: [id])
+
+  enderecoId Int @unique
+
+  Turma          Turma[]
+  Funcionario    Funcionario[]
+  Tbl_FuncDet    Tbl_FuncDet[]
+}
+
+model Endereco {
+  id          Int     @id @default(autoincrement())
+  logradouro  String
+  numero      String
+  complemento String?
+  bairro      String
+  cidade      String
+  estado      String
+  cep         String
+
+  Parada   Parada? @relation(fields: [paradaId], references: [id])
+  paradaId Int?
+
+  TranspEscolar TranspEscolar[]
+
+  Escola Escola?
+}
+
+model Funcionario {
+  id                 Int       @id() @default(autoincrement())
+  sscola             Escola    @relation(fields: [escolaId], references: [id])
+  MesReferencia      String?
+  dataDo             DateTime?
+  name               String    @db.VarChar(100)
+  alcunha            String?
+  cargo              String?   @db.VarChar(80)
+  funcaoDesempenhada String?   @db.VarChar(80)
+  statusFunc         String?
+  vinculo            String?
+  carga_Horaria      Int?      @default(0)
+  matricula          String?
+  faltas             String?
+  licenca            String?
+  extras             String?
+  OBS                String?
+  escolaId           Int
+}
+
+model Aluno {
+  // indentificador
+  id Int @id @default(autoincrement())
+
+  // Rows
+  nome               String   @unique()
+  dtNasc_Aluno       DateTime
+  localNascAluno     String
+  cidade_Aluno       String?
+  UF_Aluno           String?
+  email              String?
+  mudancaNome        String?
+  procedAluno        String?
+  docPendentesSimNao Boolean? @default(false)
+  docPendentes       String?
+  ficheiro           String?
+  alimentos          String?
+  localFotoAluno     String?
+  areaProtecaoGov    String?
+  data_Registro      DateTime
+  ssma_TimeStamp     DateTime
+
+  // Enums
+  corRaca_Aluno CorRaca
+  sexo          Sexo
+
+  // ForingKeys
+  convenioId           Int? @unique
+  situacaoEleitoralId  Int? @unique
+  documentoId          Int? @unique
+  situacaoMilitarId    Int? @unique
+  alunoTransferenciaId Int? @unique
+  enderecoId           Int? @unique
+
+  // Many:Many
+  obsNotificadasEscola Ocorrencias[]
+  MedicamentosAlergia  MedicamentosAlergia[]
+  filiacao             FiliacaoAluno[]
+
+  // Relações 
+  Documento          Documento?          @relation(fields: [documentoId], references: [id])
+  SituacaoEleitoral  SituacaoEleitoral?  @relation(fields: [situacaoEleitoralId], references: [id])
+  Covenio            Convenio?           @relation(fields: [convenioId], references: [id])
+  SituacaoMilitar    SituacaoMilitar?    @relation(fields: [situacaoMilitarId], references: [id])
+  AlunoTransferencia AlunoTransferencia? @relation(fields: [alunoTransferenciaId], references: [id])
+  Matricula          Matricula?
+}
+
+model MedicamentosAlergia {
+  id             Int     @id @default(autoincrement())
+  nomeCientifico String?
+  nomePopular    String
+  Aluno          Aluno?  @relation(fields: [alunoId], references: [id])
+  alunoId        Int?
+}
+
+model Documento {
+  id             Int       @id @default(autoincrement())
+  NrRegistro     String
+  livro          String
+  folha          String
+  dataRegistro   DateTime?
+  cartorio       String
+  UF_Cartorio    String
+  RG             String
+  dataExpRG      DateTime?
+  orgaoEmissorRG String
+  UF_RG          String
+  CPF            String
+  cartaoSUS      String
+  Aluno          Aluno?
+}
+
+model Convenio {
+  id         Int      @id @default(autoincrement())
+  nome       String
+  descricao  String?
+  dataInicio DateTime
+  dataFim    DateTime
+  ativo      Boolean  @default(true)
+  Aluno      Aluno?
+}
+
+model FiliacaoAluno {
+  id               Int    @id @default(autoincrement())
+  Nome             String
+  Celular          String
+  TelefoneFixo     String
+  TelefoneTrabalho String
+  Profissao        String
+  RG               String
+  Email            String
+  GrauInstrucao    String
+  LocalTrabalho    String
+  UF               String
+  OrgaoEmissor     String
+  Endereco         String
+  alunoId          Int?
+  Aluno            Aluno? @relation(fields: [alunoId], references: [id])
+}
+
+model SituacaoMilitar {
+  id              Int    @id @default(autoincrement())
+  Serie           String
+  AlunoReservista String
+  Categoria       String
+  Aluno           Aluno?
+}
+
+model SituacaoEleitoral {
+  id        Int    @id @default(autoincrement())
+  TituloNr  String
+  Zona      String
+  Secao     String
+  Municipio String
+  UF        String
+  Aluno     Aluno?
+}
+
+model OrigemAluno {
+  id Int @id @default(autoincrement())
+}
+
+model AlunoTransferencia {
+  id            Int    @id @default(autoincrement())
+  EscolaProc    String
+  Cidade        String
+  UF            String
+  SitCurricular String
+  Aluno         Aluno?
+
+  Nr_Aluno                   Int?
+  End_Aluno                  String?   @db.VarChar(120)
+  Numero                     String?   @db.VarChar(15)
+  DiasLetivos                Int?
+  ProcedAluno                String?
+  AlunosTransf_EscolaProc    String?
+  AlunosTransf_Cidade        String?
+  AlunosTransf_UF            String?
+  AlunosTransf_SitCurricular String?
+  Aluno_TranspTipo           String?
+  Aluno_TransRota            String?
+  Aluno_TransEmbarque        String?
+}
+
+model Serie {
+  id           Int        @id() @default(autoincrement())
+  Nome_Serie   String?    @db.VarChar(100)
+  nivelEscolar String?    @db.VarChar(50)
+  Matricula    Matricula?
+}
+
+model Turma {
+  id          Int        @id() @default(autoincrement())
+  Escola      Escola     @relation(fields: [escolaId], references: [id])
+  Nome_Turmas String?    @db.VarChar(100)
+  Matricula   Matricula?
+  escolaId    Int
+
+  @@index([id])
+}
+
+model Turnos {
+  id            Int     @id() @default(autoincrement())
+  Nome_Turno    Turno
+  Horario_Turno String? @db.VarChar(20)
+
+  Rota      Rota?
+  Matricula Matricula?
+
+  @@index([id])
+}
+
+model Tbl_FuncDet {
+  id             Int       @id() @default(autoincrement())
+  escolaId       Int       @unique
+  Escola         Escola?   @relation(fields: [escolaId], references: [id])
+  Dt_Cad         DateTime?
+  NomeFunc       String    @unique(map: "Tbl_FuncDet$Fornecedor") @db.VarChar(100)
+  Cargo          String?
+  Frequencia     String?
+  Atestados      String?
+  SSMA_TimeStamp DateTime
+}
+
+model Ocorrencias {
+  Codigo               Int     @id() @default(autoincrement()) @map("Codigo")
+  Cod_Escola           Int?    @default(0)
+  Cod_Aluno            Int?    @default(0)
+  Nome_AlunoAutor      String?
+  Cod_Matricula        Int?    @default(0)
+  AnoLetivo            Int?    @default(0)
+  AnoEscolar           String?
+  Turma                String?
+  NomeDeclarante       String?
+  Cadastro             String?
+  DataOcorrencia       String?
+  RelatoOcorrencia     String?
+  AtoIndisciplinar     String?
+  DecAutor             String?
+  Resp_Ocorrencia      String?
+  Conclusao            String?
+  Obs                  String?
+  Resp_AtendOcorrencia String?
+  Aluno                Aluno?  @relation(fields: [alunoId], references: [id])
+  alunoId              Int?
+}
+
+model TranspEscolar {
+  id              Int    @id @default(autoincrement())
+  Rotas           Rota[]
+  Moto_Nome       String
+  Moto_Fone       String
+  Moto_CNH        String
+  Moto_CatCNH     String
+  Moto_RG         String
+  Prop_Nome       String
+  Prop_Fone       String
+  Prop_CPF        String
+  Prop_RG         String
+  Veic_Marca      String
+  Veic_Modelo     String
+  Veic_Capacidade String
+  Veic_Placa      String
+
+  // o indece 0 referece ao motorista e o indece 1 ao propietario
+  Moto_Endereco Endereco[]
+
+  @@index([id])
+}
+
+model Rota {
+  id   Int    @id @default(autoincrement())
+  nome String
+
+  turno         Turnos        @relation(fields: [turnoId], references: [id])
+  TranspEscolar TranspEscolar @relation(fields: [transpEscolarId], references: [id])
+
+  transpEscolarId Int @unique
+  turnoId         Int @unique
+}
+
+model Parada {
+  id       Int        @id @default(autoincrement())
+  nome     String
+  horario  String
+  endereco Endereco[]
+}
+
+model MotivoSaida {
+  id          Int        @id() @default(autoincrement())
+  Cod_Escola  String?
+  motivoSaida String?    @db.VarChar(80)
+  Matricula   Matricula?
+
+  @@index([id])
+}
+
+model Matricula {
+  // Indentificador
+  id Int @id @default(autoincrement())
+
+  // Rows
+  Dt_Matricula               DateTime  @default(now())
+  AnoLetivo                  Int
+  Nivel                      String?   @db.VarChar(50)
+  horarioAulaID              String?   @db.VarChar(30)
+  
+  HorasAnual                 String?
+  Frequencia                 Float?
+  dataSaida                  DateTime?
+
+  Resultado_Final String?  @map("Resultado Final")
+  LocalFotoAluno  String?
+  Dt_Alteracao    String?
+  SSMA_TimeStamp  DateTime
+
+  // Relações One:One
+  Aluno       Aluno        @relation(fields: [alunoId], references: [id])
+  Turma       Turma?       @relation(fields: [turmaId], references: [id])
+  Serie       Serie        @relation(fields: [serieId], references: [id])
+  motivoSaida MotivoSaida? @relation(fields: [motivoSaidaID], references: [id])
+  Escola      Escola       @relation(fields: [escolaId], references: [id])
+  Turno       Turnos       @relation(fields: [turnosId], references: [id])
+
+  // Foringkeys
+  serieId       Int  @unique
+  turmaId       Int? @unique
+  motivoSaidaID Int? @unique
+  escolaId      Int  @unique
+  turnosId      Int  @unique
+  alunoId       Int  @unique
+
+  // Many:Many
+  Materia Materia[]
+
+  // Enums
+  Resultado Resultado
+
+  @@index([horarioAulaID])
+  @@index([motivoSaidaID])
+}
+
+model Materia {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  notas       Nota[]
+  faltas      Falta[]
+  matriculaId Int
+  matricula   Matricula @relation(fields: [matriculaId], references: [id])
+}
+
+model Nota {
+  id        Int     @id @default(autoincrement())
+  resultado Int // Mínimo 0, máximo 10
+  materiaId Int
+  materia   Materia @relation(fields: [materiaId], references: [id])
+}
+
+model Falta {
+  id        Int      @id @default(autoincrement())
+  data      DateTime @default(now())
+  materiaId Int
+  materia   Materia  @relation(fields: [materiaId], references: [id])
+  // Anexa justificação
+}
+
+model Dias {
+  ID        Int       @id @default(autoincrement())
+  Numdia    Int?      @default(0)
+  DataAtual DateTime?
+}
+
+model Funcoes {
+  IdFuncao       Int      @id() @default(autoincrement())
+  Funcao         String   @db.VarChar(100)
+  Objeto         String?  @db.VarChar(50)
+  Status         Boolean? @default(false)
+  StatusSuspenso Boolean? @default(false)
+  SSMA_TimeStamp DateTime
+
+  @@index([IdFuncao], map: "tblFunções$IdFuncao")
+  @@index([Objeto], map: "tblFunções$idxFunFormulario")
+  @@index([Funcao], map: "tblFunções$idxFunNome")
+  @@map("tblFunções")
+}
+
+model Ribbons {
+  Id             Int      @id @default(autoincrement())
+  RibbonName     String?  @db.VarChar(100)
+  RibbonXml      String?
+  Versao         Int?
+  SSMA_TimeStamp DateTime
+}
+
+model Usuarios {
+  idusuario      Int       @id @default(autoincrement())
+  usuario        String
+  alcunha        String?
+  senha          String
+  bloqueado      Boolean?  @default(false)
+  userSetor      String?
+  strDataHora    DateTime?
+  SSMA_TimeStamp DateTime
+
+  @@index([idusuario], map: "tblUsuários$IdUsuario")
+  @@map("tblUsuários")
+}
+
+enum Turno {
+  Noite
+  Manha
+  Tarde
+}
+
+enum Resultado {
+  ATIVO
+  DESATIVADO
+  EM_ANDAMENTO
+}
+
+enum CorRaca {
+  preta
+  parda
+  branco
+  indigena
+}
+
+enum Sexo {
+  Feminino
+  Masculino
+  Outro
+}
