@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
 }
 
 datasource db {
@@ -30,8 +30,9 @@ model Escola {
   Tipo_Escola             String?
   NivelEscolar            String?
 
-  matricula Matricula?
-  endereco  Endereco   @relation(fields: [enderecoId], references: [id])
+  AlunoTransferencia AlunoTransferencia?
+  matricula          Matricula?
+  endereco           Endereco   @relation(fields: [enderecoId], references: [id])
 
   enderecoId Int @unique
 
@@ -56,6 +57,7 @@ model Endereco {
   TranspEscolar TranspEscolar[]
 
   Escola Escola?
+  AlunoTransferencia AlunoTransferencia?
 }
 
 model Funcionario {
@@ -203,24 +205,21 @@ model OrigemAluno {
 
 model AlunoTransferencia {
   id            Int    @id @default(autoincrement())
-  EscolaProc    String
-  Cidade        String
-  UF            String
-  SitCurricular String
-  Aluno         Aluno?
 
-  Nr_Aluno                   Int?
-  End_Aluno                  String?   @db.VarChar(120)
-  Numero                     String?   @db.VarChar(15)
-  DiasLetivos                Int?
-  ProcedAluno                String?
-  AlunosTransf_EscolaProc    String?
-  AlunosTransf_Cidade        String?
-  AlunosTransf_UF            String?
-  AlunosTransf_SitCurricular String?
-  Aluno_TranspTipo           String?
-  Aluno_TransRota            String?
-  Aluno_TransEmbarque        String?
+  procedencia String
+  UF          String
+
+  Endereco   Endereco          @relation(fields: [enderecoId], references: [id])     
+  Escola     Escola            @relation(fields: [escolaId], references: [id])
+  motivoSaida MotivoSaida?     @relation(fields: [motivoSaidaID], references: [id])
+  TranspEscolar TranspEscolar? @relation(fields: [transpEscolarId], references: [id])
+
+  transpEscolarId Int?       @unique
+  motivoSaidaID   Int?       @unique  
+  escolaId        Int        @unique
+  enderecoId      Int        @unique
+
+  Aluno         Aluno?
 }
 
 model Serie {
@@ -303,6 +302,7 @@ model TranspEscolar {
   Veic_Capacidade String
   Veic_Placa      String
 
+  aL AlunoTransferencia?
   // o indece 0 referece ao motorista e o indece 1 ao propietario
   Moto_Endereco Endereco[]
 
@@ -331,7 +331,7 @@ model MotivoSaida {
   id          Int        @id() @default(autoincrement())
   Cod_Escola  String?
   motivoSaida String?    @db.VarChar(80)
-  Matricula   Matricula?
+  AlunoTransferencia AlunoTransferencia?
 
   @@index([id])
 }
@@ -359,14 +359,12 @@ model Matricula {
   Aluno       Aluno        @relation(fields: [alunoId], references: [id])
   Turma       Turma?       @relation(fields: [turmaId], references: [id])
   Serie       Serie        @relation(fields: [serieId], references: [id])
-  motivoSaida MotivoSaida? @relation(fields: [motivoSaidaID], references: [id])
   Escola      Escola       @relation(fields: [escolaId], references: [id])
   Turno       Turnos       @relation(fields: [turnosId], references: [id])
 
   // Foringkeys
   serieId       Int  @unique
   turmaId       Int? @unique
-  motivoSaidaID Int? @unique
   escolaId      Int  @unique
   turnosId      Int  @unique
   alunoId       Int  @unique
@@ -378,7 +376,6 @@ model Matricula {
   Resultado Resultado
 
   @@index([horarioAulaID])
-  @@index([motivoSaidaID])
 }
 
 model Materia {
@@ -434,7 +431,7 @@ model Ribbons {
 }
 
 model Usuarios {
-  idusuario      Int       @id @default(autoincrement())
+  id      Int       @id @default(autoincrement())
   usuario        String
   alcunha        String?
   senha          String
@@ -443,14 +440,14 @@ model Usuarios {
   strDataHora    DateTime?
   SSMA_TimeStamp DateTime
 
-  @@index([idusuario], map: "tblUsuários$IdUsuario")
+  @@index([id], map: "tblUsuários$id")
   @@map("tblUsuários")
 }
 
 enum Turno {
-  Noite
-  Manha
-  Tarde
+  Matutino
+  Vespertino
+  Noturno
 }
 
 enum Resultado {
