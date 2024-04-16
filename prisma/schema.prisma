@@ -1,5 +1,5 @@
 generator client {
-  provider   = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -32,13 +32,13 @@ model Escola {
 
   AlunoTransferencia AlunoTransferencia?
   matricula          Matricula?
-  endereco           Endereco   @relation(fields: [enderecoId], references: [id])
+  endereco           Endereco            @relation(fields: [enderecoId], references: [id])
 
   enderecoId Int @unique
 
-  Turma          Turma[]
-  Funcionario    Funcionario[]
-  Tbl_FuncDet    Tbl_FuncDet[]
+  Turma       Turma[]
+  Funcionario Funcionario[]
+  Tbl_FuncDet Tbl_FuncDet[]
 }
 
 model Endereco {
@@ -56,8 +56,9 @@ model Endereco {
 
   TranspEscolar TranspEscolar[]
 
-  Escola Escola?
+  Escola             Escola?
   AlunoTransferencia AlunoTransferencia?
+  Aluno              Aluno?
 }
 
 model Funcionario {
@@ -86,21 +87,15 @@ model Aluno {
 
   // Rows
   nome               String   @unique()
-  dtNasc_Aluno       DateTime
-  localNascAluno     String
-  cidade_Aluno       String?
-  UF_Aluno           String?
+  celularAluno       String?
   email              String?
   mudancaNome        String?
   procedAluno        String?
-  docPendentesSimNao Boolean? @default(false)
-  docPendentes       String?
+  docPendentesSimNao Boolean? @default(true)
   ficheiro           String?
   alimentos          String?
-  localFotoAluno     String?
   areaProtecaoGov    String?
-  data_Registro      DateTime
-  ssma_TimeStamp     DateTime
+  data_Registro      DateTime @default(now())
 
   // Enums
   corRaca_Aluno CorRaca
@@ -108,9 +103,7 @@ model Aluno {
 
   // ForingKeys
   convenioId           Int? @unique
-  situacaoEleitoralId  Int? @unique
   documentoId          Int? @unique
-  situacaoMilitarId    Int? @unique
   alunoTransferenciaId Int? @unique
   enderecoId           Int? @unique
 
@@ -121,10 +114,9 @@ model Aluno {
 
   // Relações 
   Documento          Documento?          @relation(fields: [documentoId], references: [id])
-  SituacaoEleitoral  SituacaoEleitoral?  @relation(fields: [situacaoEleitoralId], references: [id])
   Covenio            Convenio?           @relation(fields: [convenioId], references: [id])
-  SituacaoMilitar    SituacaoMilitar?    @relation(fields: [situacaoMilitarId], references: [id])
   AlunoTransferencia AlunoTransferencia? @relation(fields: [alunoTransferenciaId], references: [id])
+  Endereco           Endereco?           @relation(fields: [enderecoId], references: [id])
   Matricula          Matricula?
 }
 
@@ -136,21 +128,101 @@ model MedicamentosAlergia {
   alunoId        Int?
 }
 
+model Images {
+  id                Int              @id @default(autoincrement())
+  imagem            Bytes
+  RG                RG?              @relation(fields: [rGId], references: [id])
+  rGId              Int?
+  SUS               SUS?             @relation(fields: [sUSId], references: [id])
+  sUSId             Int?
+  TituloEleitor     TituloEleitor?   @relation(fields: [tituloEleitorId], references: [id])
+  tituloEleitorId   Int?
+  SituacaoMilitar   SituacaoMilitar? @relation(fields: [situacaoMilitarId], references: [id])
+  situacaoMilitarId Int?
+}
+
+model RG {
+  id            Int          @id @default(autoincrement())
+  rg            String       @db.VarChar(10) @unique()
+  cpf           String       @db.VarChar(11) @unique()
+  dataExpedicao DateTime?
+  dataNascimento  DateTime
+  orgaoEmissor  String
+  UF            EstadoBrasil
+  mae           String?
+  pai           String?
+  naturalidade  String
+  docOrigem     String
+  images        Images[]
+  Documento     Documento?
+}
+
+model SUS {
+  id        Int        @id @default(autoincrement())
+  nome      String     
+  nacimento DateTime
+  sexo      Sexo
+  numero    String     @db.VarChar(15) @unique()
+  images    Images[]
+  Documento Documento?
+}
+
+model TituloEleitor {
+  id        Int    @id @default(autoincrement())
+  nome      String
+  inscricao String @db.VarChar(12) @unique()
+
+  dataNascimento DateTime
+  dataEmissao    DateTime
+
+  pai String?
+  mae String?
+
+  zona  Int
+  secao Int
+
+  Images    Images[]
+  Documento Documento?
+}
+
+model SituacaoMilitar {
+  id              Int    @id @default(autoincrement())
+  tipoDeDocumento String
+  ra              String @db.VarChar(12) @unique()
+  cpf             String @db.VarChar(11) @unique()
+  nome            String
+
+  pai String
+  mae String
+
+  localNacimento String
+  dataNascimento  DateTime
+
+  situacaoServicoMilitar String
+
+  validade DateTime?
+
+  Documento Documento?
+  Images    Images[]
+}
+
 model Documento {
-  id             Int       @id @default(autoincrement())
-  NrRegistro     String
-  livro          String
-  folha          String
-  dataRegistro   DateTime?
-  cartorio       String
-  UF_Cartorio    String
-  RG             String
-  dataExpRG      DateTime?
-  orgaoEmissorRG String
-  UF_RG          String
-  CPF            String
-  cartaoSUS      String
-  Aluno          Aluno?
+  id         Int     @id @default(autoincrement())
+  NrRegistro String?
+  livro      String?
+  folha      String?
+
+  sUSId             Int? @unique
+  rGId              Int? @unique
+  tituloEleitorId   Int? @unique
+  situacaoMilitarId Int? @unique
+
+  SUS             SUS?             @relation(fields: [sUSId], references: [id])
+  RG              RG?              @relation(fields: [rGId], references: [id])
+  TituloEleitor   TituloEleitor?   @relation(fields: [tituloEleitorId], references: [id])
+  SituacaoMilitar SituacaoMilitar? @relation(fields: [situacaoMilitarId], references: [id])
+
+  Aluno Aluno?
 }
 
 model Convenio {
@@ -164,39 +236,21 @@ model Convenio {
 }
 
 model FiliacaoAluno {
-  id               Int    @id @default(autoincrement())
-  Nome             String
-  Celular          String
-  TelefoneFixo     String
-  TelefoneTrabalho String
-  Profissao        String
-  RG               String
-  Email            String
-  GrauInstrucao    String
-  LocalTrabalho    String
-  UF               String
-  OrgaoEmissor     String
-  Endereco         String
-  alunoId          Int?
-  Aluno            Aluno? @relation(fields: [alunoId], references: [id])
-}
+  id                      Int     @id @default(autoincrement())
+  Nome                    String
+  celular                 String?
+  telefoneFixo            String?
+  telefoneTrabalho        String?
+  profissao               String?
+  RG                      String?
+  email                   String?
+  grauInstrucao           String?
+  localTrabalhoEnderecoId Int?    @unique
 
-model SituacaoMilitar {
-  id              Int    @id @default(autoincrement())
-  Serie           String
-  AlunoReservista String
-  Categoria       String
-  Aluno           Aluno?
-}
+  alunoId    Int?
+  enderecoId Int  @unique
 
-model SituacaoEleitoral {
-  id        Int    @id @default(autoincrement())
-  TituloNr  String
-  Zona      String
-  Secao     String
-  Municipio String
-  UF        String
-  Aluno     Aluno?
+  Aluno Aluno? @relation(fields: [alunoId], references: [id])
 }
 
 model OrigemAluno {
@@ -204,22 +258,22 @@ model OrigemAluno {
 }
 
 model AlunoTransferencia {
-  id            Int    @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   procedencia String
   UF          String
 
-  Endereco   Endereco          @relation(fields: [enderecoId], references: [id])     
-  Escola     Escola            @relation(fields: [escolaId], references: [id])
-  motivoSaida MotivoSaida?     @relation(fields: [motivoSaidaID], references: [id])
+  Endereco      Endereco       @relation(fields: [enderecoId], references: [id])
+  Escola        Escola         @relation(fields: [escolaId], references: [id])
+  motivoSaida   MotivoSaida?   @relation(fields: [motivoSaidaID], references: [id])
   TranspEscolar TranspEscolar? @relation(fields: [transpEscolarId], references: [id])
 
-  transpEscolarId Int?       @unique
-  motivoSaidaID   Int?       @unique  
-  escolaId        Int        @unique
-  enderecoId      Int        @unique
+  transpEscolarId Int? @unique
+  motivoSaidaID   Int? @unique
+  escolaId        Int  @unique
+  enderecoId      Int  @unique
 
-  Aluno         Aluno?
+  Aluno Aluno?
 }
 
 model Serie {
@@ -235,17 +289,6 @@ model Turma {
   Nome_Turmas String?    @db.VarChar(100)
   Matricula   Matricula?
   escolaId    Int
-
-  @@index([id])
-}
-
-model Turnos {
-  id            Int     @id() @default(autoincrement())
-  Nome_Turno    Turno
-  Horario_Turno String? @db.VarChar(20)
-
-  Rota      Rota?
-  Matricula Matricula?
 
   @@index([id])
 }
@@ -287,7 +330,6 @@ model Ocorrencias {
 
 model TranspEscolar {
   id              Int    @id @default(autoincrement())
-  Rotas           Rota[]
   Moto_Nome       String
   Moto_Fone       String
   Moto_CNH        String
@@ -302,22 +344,20 @@ model TranspEscolar {
   Veic_Capacidade String
   Veic_Placa      String
 
-  aL AlunoTransferencia?
+  aL            AlunoTransferencia?
   // o indece 0 referece ao motorista e o indece 1 ao propietario
   Moto_Endereco Endereco[]
-
-  @@index([id])
+  Rotas         Rota[]
 }
 
 model Rota {
   id   Int    @id @default(autoincrement())
   nome String
 
-  turno         Turnos        @relation(fields: [turnoId], references: [id])
-  TranspEscolar TranspEscolar @relation(fields: [transpEscolarId], references: [id])
+  turno Turno
 
-  transpEscolarId Int @unique
-  turnoId         Int @unique
+  TranspEscolar TranspEscolar[]
+  paradas       Parada[]
 }
 
 model Parada {
@@ -325,12 +365,14 @@ model Parada {
   nome     String
   horario  String
   endereco Endereco[]
+  Rota     Rota?      @relation(fields: [rotaId], references: [id])
+  rotaId   Int?
 }
 
 model MotivoSaida {
-  id          Int        @id() @default(autoincrement())
-  Cod_Escola  String?
-  motivoSaida String?    @db.VarChar(80)
+  id                 Int                 @id() @default(autoincrement())
+  Cod_Escola         String?
+  motivoSaida        String?             @db.VarChar(80)
   AlunoTransferencia AlunoTransferencia?
 
   @@index([id])
@@ -341,14 +383,14 @@ model Matricula {
   id Int @id @default(autoincrement())
 
   // Rows
-  Dt_Matricula               DateTime  @default(now())
-  AnoLetivo                  Int
-  Nivel                      String?   @db.VarChar(50)
-  horarioAulaID              String?   @db.VarChar(30)
-  
-  HorasAnual                 String?
-  Frequencia                 Float?
-  dataSaida                  DateTime?
+  Dt_Matricula  DateTime @default(now())
+  AnoLetivo     Int
+  Nivel         String?  @db.VarChar(50)
+  horarioAulaID String?  @db.VarChar(30)
+
+  HorasAnual String?
+  Frequencia Float?
+  dataSaida  DateTime?
 
   Resultado_Final String?  @map("Resultado Final")
   LocalFotoAluno  String?
@@ -356,24 +398,23 @@ model Matricula {
   SSMA_TimeStamp  DateTime
 
   // Relações One:One
-  Aluno       Aluno        @relation(fields: [alunoId], references: [id])
-  Turma       Turma?       @relation(fields: [turmaId], references: [id])
-  Serie       Serie        @relation(fields: [serieId], references: [id])
-  Escola      Escola       @relation(fields: [escolaId], references: [id])
-  Turno       Turnos       @relation(fields: [turnosId], references: [id])
+  Aluno  Aluno  @relation(fields: [alunoId], references: [id])
+  Turma  Turma? @relation(fields: [turmaId], references: [id])
+  Serie  Serie  @relation(fields: [serieId], references: [id])
+  Escola Escola @relation(fields: [escolaId], references: [id])
 
   // Foringkeys
-  serieId       Int  @unique
-  turmaId       Int? @unique
-  escolaId      Int  @unique
-  turnosId      Int  @unique
-  alunoId       Int  @unique
+  serieId  Int  @unique
+  turmaId  Int? @unique
+  escolaId Int  @unique
+  alunoId  Int  @unique
 
   // Many:Many
   Materia Materia[]
 
   // Enums
-  Resultado Resultado
+  Resultado Resultado @default(EM_ANDAMENTO)
+  Turno     Turno
 
   @@index([horarioAulaID])
 }
@@ -431,7 +472,7 @@ model Ribbons {
 }
 
 model Usuarios {
-  id      Int       @id @default(autoincrement())
+  id             Int       @id @default(autoincrement())
   usuario        String
   alcunha        String?
   senha          String
@@ -467,4 +508,45 @@ enum Sexo {
   Feminino
   Masculino
   Outro
+}
+
+enum EstadoBrasil {
+  AC
+  AL
+  AP
+  AM
+  BA
+  CE
+  DF
+  ES
+  GO
+  MA
+  MT
+  MS
+  MG
+  PA
+  PB
+  PR
+  PE
+  PI
+  RJ
+  RN
+  RS
+  RO
+  RR
+  SC
+  SP
+  SE
+  TO
+}
+
+enum TipoSangue {
+  A_POSITIVO 
+  A_NEGATIVO 
+  B_POSITIVO
+  B_NEGATIVO 
+  AB_POSITIVO
+  AB_NEGATIVO
+  O_POSITIVO
+  O_NEGATIVO 
 }

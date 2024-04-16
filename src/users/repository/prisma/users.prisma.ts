@@ -6,7 +6,7 @@ import { NotFoundException } from "@nestjs/common";
 import { PrismaService } from "src/prisma.service";
 
 export class UsersPrismaRepository implements UsersRepository {
-    constructor(private prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) { }
 
     async create(createUserDto: CreateUserDto): Promise<Usuarios> {
         const user = {} as Usuarios;
