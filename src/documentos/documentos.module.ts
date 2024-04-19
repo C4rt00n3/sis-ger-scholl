@@ -11,5 +11,6 @@ import { DocumentosRepositoryPrisma } from './repository/prisma/documentos.prism
     provide: DocumentosRepository,
     useClass: DocumentosRepositoryPrisma
   }],
+  exports: [DocumentosService]
 })
 export class DocumentosModule {}

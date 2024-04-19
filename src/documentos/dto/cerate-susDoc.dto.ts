@@ -2,7 +2,6 @@ import { Sexo } from "@prisma/client";
 import { IsDate, IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from "class-transformer";
-import { formatarDataParaBancoDeDados } from "src/utils";
 
 export class CreateSusDto {
   @ApiProperty({ description: 'O nome do paciente' })
@@ -14,7 +13,7 @@ export class CreateSusDto {
   @IsNotEmpty()
   @IsDate()
   @Transform(({value}) => new Date(value))
-  nacimento: Date;
+  nascimento: Date;
 
   @ApiProperty({ description: 'O sexo do paciente' })
   @IsNotEmpty()
@@ -23,9 +22,9 @@ export class CreateSusDto {
 
   @ApiPropertyOptional({ description: 'O número do SUS do paciente (opcional)' })
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   @MaxLength(15)
   @MinLength(15)
-  numero?: string;
+  numero: string;
 
 }

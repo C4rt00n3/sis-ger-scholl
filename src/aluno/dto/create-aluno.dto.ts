@@ -1,8 +1,14 @@
 import { CorRaca, EstadoBrasil, Sexo } from '@prisma/client';
-import { IsNotEmpty, IsDefined, IsOptional, IsInt, IsDate, IsString, IsBoolean, IsEnum, MaxLength, ValidateNested, IsNotEmptyObject, IsObject, IsEmail } from 'class-validator';
+import { IsNotEmpty, IsDefined, IsOptional, IsInt, IsDate, IsString, IsBoolean, IsEnum, MaxLength, ValidateNested, IsNotEmptyObject, IsObject, IsEmail, MinLength, IsArray, ArrayMinSize, ArrayMaxSize } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { CreateDocumentoDto } from './create-document.dto';
+import { CreateDocumentoDto } from 'src/documentos/dto/create-documento.dto';
+import { CreateAlunoTransferenciaDto } from 'src/aluno_transferencia/dto/create-aluno_transferencia.dto';
+import { CreateEnderecoDto } from 'src/endereco/dto/create-endereco.dto';
+import { CreateConvenioDto } from 'src/convenio/dto/create-covenio.dto';
+import { CreateSerieDto } from 'src/serie/dto/create-serie.dto';
+import { CreateTurmaDto } from 'src/turma/dto/create-turma.dto';
+import { CreateFiliacaoAlunoDto } from 'src/filiacao-aluno/dto/create-filiacao-aluno.dto';
 
 export class CreateAlunoDto {
   @ApiProperty({ description: 'Nome do aluno', type: String })
@@ -10,25 +16,12 @@ export class CreateAlunoDto {
   @IsString()
   nome: string;
 
-  @ApiProperty({ description: 'Data de nascimento do aluno', type: Date })
-  @IsNotEmpty()
-  @IsDate()
-  dtNasc_Aluno: Date;
-
-  @ApiProperty({ description: 'Local de nascimento do aluno', type: String })
-  @IsNotEmpty()
-  @IsString()
-  localNascAluno: string;
-
-  @ApiProperty({ description: 'Cidade do aluno', type: String, required: false })
+  @ApiProperty({description: "Telefone do Aluno", type: String, required: false})
   @IsOptional()
+  @MaxLength(11)
+  @MinLength(11)
   @IsString()
-  cidade_Aluno?: string;
-
-  @ApiProperty({ description: 'UF do aluno', enum: EstadoBrasil, type: String })
-  @IsEnum(EstadoBrasil)
-  @IsString()
-  UF_Aluno: EstadoBrasil;
+  celularAluno?: string;
 
   @ApiProperty({ description: 'Email do aluno', type: String, required: false })
   @IsOptional()
@@ -72,16 +65,6 @@ export class CreateAlunoDto {
   @IsString()
   areaProtecaoGov?: string;
 
-  @ApiProperty({ description: 'Data de registro do aluno', type: Date })
-  @IsNotEmpty()
-  @IsDate()
-  data_Registro: Date;
-
-  @ApiProperty({ description: 'Timestamp SSMA do aluno', type: Date })
-  @IsNotEmpty()
-  @IsDate()
-  ssma_TimeStamp: Date;
-
   @ApiProperty({ description: 'Cor/Raça do aluno', enum: CorRaca, type: String })
   @IsNotEmpty()
   @IsEnum(CorRaca)
@@ -92,31 +75,61 @@ export class CreateAlunoDto {
   @IsEnum(Sexo)
   sexo: Sexo;
 
-  @ApiProperty({ description: 'ID do convênio do aluno', type: Number, required: false })
-  @IsOptional()
-  @IsInt()
-  convenioId?: number;
-
-  @ApiProperty({ description: 'ID do documento do aluno', type: Number, required: false })
-  @IsOptional()
-  @IsInt()
-  documentoId?: number;
-
-  @ApiProperty({ description: 'ID do aluno para transferência', type: Number, required: false })
-  @IsOptional()
-  @IsInt()
-  alunoTransferenciaId?: number;
-
-  @ApiProperty({ description: 'ID do endereço do aluno', type: Number, required: false })
-  @IsOptional()
-  @IsInt()
-  enderecoId?: number;
-  
+  // JSON objects to receive
   @ApiProperty({ description: 'Documentos do aluno', type: CreateDocumentoDto, required: false })
   @IsOptional()
   @ValidateNested()
   @IsDefined()
   @IsObject()
   @Type(() => CreateDocumentoDto)
-  Documents: CreateDocumentoDto
+  Documentos?: CreateDocumentoDto
+
+  @ApiProperty({ description: 'Covenio do aluno', type: CreateConvenioDto, required: false })
+  @IsOptional()
+  @ValidateNested()
+  @IsDefined()
+  @IsObject()
+  @Type(() => CreateConvenioDto)
+  Convenio?: CreateConvenioDto
+
+  @ApiProperty({ description: 'Transferencia do aluno', type: CreateAlunoTransferenciaDto, required: false })
+  @IsOptional()
+  @ValidateNested()
+  @IsDefined()
+  @IsObject()
+  @Type(() => CreateAlunoTransferenciaDto)
+  AlunoTransferencia?: CreateAlunoTransferenciaDto
+
+  @ApiProperty({ description: 'Endereco do aluno', type: CreateEnderecoDto, required: false })
+  @ValidateNested()
+  @IsDefined()
+  @IsObject()
+  @Type(() => CreateEnderecoDto)
+  Endereco: CreateEnderecoDto;
+
+  @ApiProperty({ description: 'Serie do aluno', type: CreateSerieDto, required: true })
+  @ValidateNested()
+  @IsDefined()
+  @IsObject()
+  @Type(() => CreateSerieDto)
+  Serie: CreateSerieDto;
+
+  @ApiProperty({ description: 'Serie do aluno', type: CreateTurmaDto, required: false })
+  @ValidateNested()
+  @IsOptional()
+  @IsObject()
+  @Type(() => CreateTurmaDto)
+  Turma?: CreateTurmaDto
+
+  @ApiProperty({
+    description: 'Informações sobre a filiação do aluno. Deve conter no mínimo 1 item e no máximo 2.',
+    type: Array<CreateFiliacaoAlunoDto>,
+  })
+  
+  @ValidateNested({ each: true })
+  @IsArray({ message: 'A filiação deve ser um array' })
+  @ArrayMinSize(1, { message: 'A filiação deve ter pelo menos 1 item' })
+  @ArrayMaxSize(2, { message: 'A filiação deve ter no máximo 2 itens' })
+  @Type(() => Array<CreateFiliacaoAlunoDto>)
+  filiacao: Array<CreateFiliacaoAlunoDto>;
 }

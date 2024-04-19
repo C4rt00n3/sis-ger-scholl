@@ -3,6 +3,7 @@ import { DocumentosService } from './documentos.service';
 import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { UpdateDocumentoDto } from './dto/update/update-documento.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { CreateRgDto } from './dto/create-rgDoc.dto';
 
 
 @Controller('documentos')
@@ -12,15 +13,8 @@ export class DocumentosController {
   constructor(private readonly documentosService: DocumentosService) {}
 
   @Post()
-  @UsePipes( new ValidationPipe({
-    forbidNonWhitelisted: true,
-    transform: true,
-    transformOptions: {
-      enableImplicitConversion: true
-    },
-    enableDebugMessages: true,
-  }))
   create(@Body() createDocumentoDto: CreateDocumentoDto) {
+    console.log(createDocumentoDto)
     return this.documentosService.create(createDocumentoDto);
   }
 
@@ -42,5 +36,11 @@ export class DocumentosController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.documentosService.remove(+id);
+  }
+
+  @Post("/RG")
+  createRG(@Body() createRgDto: CreateRgDto) {
+    console.log(createRgDto)
+    return this.documentosService.createRG(createRgDto);
   }
 }

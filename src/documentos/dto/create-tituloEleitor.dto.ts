@@ -1,7 +1,6 @@
 import { IsDate, IsDateString, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { formatarDataParaBancoDeDados } from 'src/utils';
 
 export class CreateTituloEleitorDTO {
   @ApiProperty({ description: 'Nome completo', example: 'João da Silva', required: true })

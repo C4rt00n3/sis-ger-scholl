@@ -1,26 +1,57 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAlunoDto } from './dto/create-aluno.dto';
 import { UpdateAlunoDto } from './dto/update-aluno.dto';
+import { AlunoRepository } from './repositori/aluno.repository';
+import { Aluno } from '@prisma/client';
 
 @Injectable()
 export class AlunoService {
-  create(createAlunoDto: CreateAlunoDto) {
-    return 'This action adds a new aluno';
+  constructor(private readonly alunoRepo: AlunoRepository) {}
+  /**
+   * Cria um novo aluno com base nos dados fornecidos.
+   * @param createAlunoDto Os dados do aluno a ser criado.
+   * @returns O aluno criado.
+   */
+  async create(createAlunoDto: CreateAlunoDto): Promise<Aluno> {
+    return await this.alunoRepo.create(createAlunoDto)
   }
 
-  findAll() {
-    return `This action returns all aluno`;
+  /**
+   * Retorna todos os alunos existentes.
+   * @returns Uma lista contendo todos os alunos.
+   */
+  async findAll(): Promise<Aluno[]> {
+    return await this.alunoRepo.findMany({})
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} aluno`;
+  /**
+   * Retorna um aluno específico com base no ID fornecido.
+   * @param id O ID do aluno a ser buscado.
+   * @returns O aluno encontrado.
+   * @throws NotFoundException Se o aluno com o ID fornecido não for encontrado.
+   */
+  async findOne(id: number): Promise<Aluno> {
+    return await this.alunoRepo.findOne(id)
   }
 
-  update(id: number, updateAlunoDto: UpdateAlunoDto) {
-    return `This action updates a #${id} aluno`;
+  /**
+   * Atualiza os dados de um aluno existente com base no ID fornecido.
+   * @param id O ID do aluno a ser atualizado.
+   * @param updateAlunoDto Os novos dados do aluno.
+   * @returns O aluno atualizado.
+   * @throws NotFoundException Se o aluno com o ID fornecido não for encontrado.
+   */
+  async update(id: number, updateAlunoDto: UpdateAlunoDto): Promise<Aluno> {
+    return await this.alunoRepo.update(id, updateAlunoDto)
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} aluno`;
+  /**
+   * Remove um aluno com base no ID fornecido.
+   * @param id O ID do aluno a ser removido.
+   * @returns Nada.
+   * @throws NotFoundException Se o aluno com o ID fornecido não for encontrado.
+   */
+  async remove(id: number): Promise<void> {
+     await this.alunoRepo.remove(id)
   }
 }

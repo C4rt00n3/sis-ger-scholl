@@ -1,4 +1,4 @@
-import { IsDefined, IsInt, IsNotEmptyObject, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsDefined, IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { CreateSusDto } from './cerate-susDoc.dto';
@@ -8,15 +8,18 @@ import { CreateRgDto } from './create-rgDoc.dto';
 
 export class CreateDocumentoDto {
     @ApiProperty({ description: 'Número de registro do documento', required: false })
-    @IsString()
-    NrRegistro: string;
+    @IsNumber()
+    @IsOptional()
+    NrRegistro: number;
 
     @ApiProperty({ description: 'Número do livro do documento', required: false })
     @IsString()
+    @IsOptional()
     livro: string;
 
     @ApiProperty({ description: 'Número da folha do documento', required: false })
     @IsString()
+    @IsOptional()
     folha: string;
 
     @ApiProperty({ description: 'Dados do SUS', type: CreateSusDto })

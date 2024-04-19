@@ -49,7 +49,7 @@ export class CreateSituacaoMilitarDTO {
   @IsString()
   @MinLength(1)
   @MaxLength(255)
-  localNacimento: string;
+  localNascimento: string;
 
   @IsNotEmpty()
   @ApiProperty({ description: 'Data de nascimento', example: '1990-01-01', required: false })

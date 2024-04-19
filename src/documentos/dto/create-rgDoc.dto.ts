@@ -1,14 +1,15 @@
 import { EstadoBrasil } from '@prisma/client';
-import { IsOptional, IsString, IsEnum, IsNotEmpty, MaxLength, MinLength, IsDate, IsDateString } from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsNotEmpty, MaxLength, MinLength, IsDate, IsDateString, IsInt } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { formatarDataParaBancoDeDados } from 'src/utils';
 
 export class CreateRgDto {
   @ApiProperty({ description: 'Número do RG' })
+  @IsNotEmpty()  
   @IsString()
-  @IsNotEmpty()
-  rg: string;
+  @MaxLength(10)
+  @MinLength(10) 
+  rgNumero: string;
 
   @ApiProperty({ description: 'Número do CPF' })
   @IsString()
@@ -58,6 +59,11 @@ export class CreateRgDto {
   @IsString()
   @IsNotEmpty()
   docOrigem: string;
+
+  @ApiProperty({ description: 'id do Documento', type: Number, required: false })
+  @IsInt()
+  @IsOptional()
+  documentoId?: number;
 
   //   images: ImagesDTO[];
 }
