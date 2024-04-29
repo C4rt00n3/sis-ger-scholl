@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersRepository } from './repository/users.repository';
+import { Usuarios } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -49,5 +50,23 @@ export class UsersService {
    */
   remove(id: number) {
     return this.userRepository.remove(id);
+  }
+
+   /**
+     * Busca usuário pelo username
+     * @param username nome de usuário 
+     * @returns {Usuarios}
+    **/
+  async findByUsername(username: string): Promise<Usuarios> {
+    return await this.userRepository.findByUsername(username)
+  }
+
+   /**
+   * Busca usuário pelo username
+   * @param username nome de usuário 
+   * @returns {Usuarios}
+  **/
+  async findByEmail(email: string): Promise<Usuarios> {
+    return await this.userRepository.findByEmail(email)
   }
 }

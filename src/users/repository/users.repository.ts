@@ -39,4 +39,18 @@ export abstract class UsersRepository {
      * @param id O ID do usuário a ser removido.
      */
     abstract remove(id: number): Promise<void>;
+    
+    /**
+     * Busca usuário pelo username
+     * @param username nome de usuário 
+     * @returns {Usuarios}
+    **/
+    abstract findByUsername(username: string): Promise<Usuarios>;
+
+     /**
+     * Busca usuário pelo username
+     * @param username nome de usuário 
+     * @returns {Usuarios}
+    **/
+    abstract findByEmail(email: string): Promise<Usuarios>;
 }

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAlunoDto } from './dto/create-aluno.dto';
 import { UpdateAlunoDto } from './dto/update-aluno.dto';
 import { AlunoRepository } from './repositori/aluno.repository';
-import { Aluno } from '@prisma/client';
+import { Aluno, Usuarios } from '@prisma/client';
 
 @Injectable()
 export class AlunoService {
@@ -12,8 +12,8 @@ export class AlunoService {
    * @param createAlunoDto Os dados do aluno a ser criado.
    * @returns O aluno criado.
    */
-  async create(createAlunoDto: CreateAlunoDto): Promise<Aluno> {
-    return await this.alunoRepo.create(createAlunoDto)
+  async create(createAlunoDto: CreateAlunoDto, user: Usuarios): Promise<Aluno> {
+    return await this.alunoRepo.create(createAlunoDto, user)
   }
 
   /**

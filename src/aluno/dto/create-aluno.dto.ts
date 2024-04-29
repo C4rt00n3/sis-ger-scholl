@@ -40,11 +40,6 @@ export class CreateAlunoDto {
   @IsString()
   procedAluno?: string;
 
-  @ApiProperty({ description: 'Documentos pendentes do aluno', type: Boolean, required: false, default: false })
-  @IsOptional()
-  @IsBoolean() 
-  docPendentesSimNao?: boolean = false;
-
   @ApiProperty({ description: 'Ficheiro do aluno', type: String, required: false })
   @IsOptional()
   @IsString()
@@ -70,9 +65,9 @@ export class CreateAlunoDto {
   @IsEnum(CorRaca)
   corRaca_Aluno: CorRaca;
 
-  @ApiProperty({ description: 'Sexo do aluno', enum: Sexo, type: String })
+  // @ApiProperty({ description: 'Sexo do aluno', type: () => Sexo, enum: Sexo })
   @IsNotEmpty()
-  @IsEnum(Sexo)
+  // @IsEnum(Sexo)
   sexo: Sexo;
 
   // JSON objects to receive

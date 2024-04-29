@@ -1,9 +1,9 @@
-import { Aluno } from "@prisma/client";
+import { Aluno, Usuarios } from "@prisma/client";
 import { CreateAlunoDto } from "../dto/create-aluno.dto";
 import { UpdateAlunoDto } from "../dto/update-aluno.dto";
 
 export abstract class AlunoRepository {
-    abstract create(CreateAlunoDto: CreateAlunoDto): Promise<Aluno>
+    abstract create(CreateAlunoDto: CreateAlunoDto,user: Usuarios): Promise<Aluno>
 
     abstract findOne(id: number): Promise<Aluno>
 

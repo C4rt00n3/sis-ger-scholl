@@ -1,9 +1,9 @@
-import { Aluno, Documento, FiliacaoAluno, Turma } from "@prisma/client";
+import { Aluno, Documento, FiliacaoAluno, Turma, Usuarios } from "@prisma/client";
 import { CreateAlunoDto } from "src/aluno/dto/create-aluno.dto";
 import { UpdateAlunoDto } from "src/aluno/dto/update-aluno.dto";
 import { AlunoRepository } from "../aluno.repository";
 import { PrismaService } from "src/prisma.service";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { EnderecoService } from "src/endereco/endereco.service";
 import { DocumentosService } from "src/documentos/documentos.service";
 import { ConvenioService } from "src/convenio/convenio.service";
@@ -34,21 +34,22 @@ export class AlunoRepositoryPrisma implements AlunoRepository {
      * @param createAlunoDto Os dados do aluno a ser criado.
      * @returns O aluno criado.
      */
-    async create(createAlunoDto: CreateAlunoDto): Promise<Aluno> {
+    async create(createAlunoDto: CreateAlunoDto, user: Usuarios): Promise<Aluno> {
+        let aluno: Aluno | null = null;
         const { Documentos, Convenio, Serie, Turma, AlunoTransferencia, Endereco, filiacao, ...alunoData } = createAlunoDto;
         let data = alunoData as Aluno;
         let filiacoes: FiliacaoAluno[] = [];
-        data = {...data, ...await this.createObjectsRelationsToAluno(createAlunoDto)};
-        // Cria o endereço
-        data.enderecoId = (await this.enderecoService.create(createAlunoDto.Endereco)).id;
-
-        // Cria o aluno
-        const aluno = await this.prisma.aluno.create({ data });
-
-        // Cria as filiações
-        filiacoes = await this.createFiliacoes(createAlunoDto.filiacao, aluno.id);
-
-        return this.findOne(aluno.id);
+        try {
+            data = { ...data, ...await this.createObjectsRelationsToAluno(createAlunoDto, user) };
+            data.enderecoId = (await this.enderecoService.create(createAlunoDto.Endereco)).id;
+            aluno = await this.prisma.aluno.create({ data })
+            filiacoes = await this.createFiliacoes(createAlunoDto.filiacao, aluno.id);
+            return this.findOne(aluno.id);
+        }catch(error){
+            if(error.code == "P2002" && error.meta?.target?.includes('Aluno_nome_key'))
+                throw new ConflictException('já existe um aluno com este nome.');
+            throw error
+        }
     }
 
     /**
@@ -88,7 +89,7 @@ export class AlunoRepositoryPrisma implements AlunoRepository {
      * @param createAlunoDto Os dados do aluno a serem utilizados para criar os objetos relacionados.
      * @returns Um objeto contendo os IDs dos objetos relacionados ao aluno.
      */
-    private async createObjectsRelationsToAluno(createAlunoDto: CreateAlunoDto): Promise<Aluno> {
+    private async createObjectsRelationsToAluno(createAlunoDto: CreateAlunoDto, user: Usuarios): Promise<Aluno> {
         const data = {} as Aluno;
         let Documentos: Documento | null = null;
         try {
@@ -113,13 +114,14 @@ export class AlunoRepositoryPrisma implements AlunoRepository {
             }
 
             if (createAlunoDto.Turma) {
-                const Turma = await this.turmaService.create(createAlunoDto.Turma);
+                const Turma = await this.turmaService.create(createAlunoDto.Turma, user);
                 data.turmaId = Turma.id
             }
+
             return data
         } catch (error) {
             // Handle error
-            if(Documentos) await this.docService.rollbackData(Documentos)
+            if (Documentos) await this.docService.rollbackData(Documentos)
             await this.rollbackData(data as Aluno, []);
             throw error;
         }
@@ -166,7 +168,11 @@ export class AlunoRepositoryPrisma implements AlunoRepository {
      */
     async findMany(query: {}): Promise<Aluno[]> {
         return await this.prisma.aluno.findMany({
-            where: { ...query }
+            where: { ...query }, 
+            include: {
+                Serie: true,
+                Turma: true
+            }
         })
     }
 

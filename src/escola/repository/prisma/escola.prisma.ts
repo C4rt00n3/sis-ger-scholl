@@ -3,48 +3,53 @@ import { UpdateEscolaDto } from "src/escola/dto/update-escola.dto";
 import { EscolaRepository } from "../escola.repository";
 import { PrismaService } from "src/prisma.service";
 import { Escola } from "@prisma/client";
-import { NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { EnderecoService } from "src/endereco/endereco.service";
 
+@Injectable()
 export class EscolaRepositoryPrisma implements EscolaRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly enderecoservice: EnderecoService
+    ) {}
 
     async create(createEscolaDto: CreateEscolaDto): Promise<Escola> {
-        const data = {} as Escola;
-        Object.assign(data, createEscolaDto != null);
+        const { endereco, ...pick } = createEscolaDto;
+        const data = pick as Escola;
 
-        if(createEscolaDto.Endereco){
-            const endereco = await this.prisma.endereco.create({data: createEscolaDto.Endereco});
+        if(createEscolaDto.endereco){
+            const endereco = await this.enderecoservice.create(createEscolaDto.endereco);
             data.enderecoId = endereco.id;
         }
 
         return await this.prisma.escola.create({
-            data
+            data: data
         })
-    }
+    }   
     
     async findAll(filters: {}): Promise<Escola[]> {
         return await this.prisma.escola.findMany({where: filters})
     }
     
     async findOne(id: number): Promise<Escola> {
-        return await this.prisma.escola.findUniqueOrThrow({where: {id}}).catch(_ => {throw new NotFoundException("Escola não encontrada!")})
+        return await this.prisma.escola.findUniqueOrThrow({where: {id}})
+        .then((e) => e)
+        .catch(_ => {throw new NotFoundException("Escola não encontrada!")})
     }
     
     async update(id: number, updateEscolaDto: UpdateEscolaDto): Promise<Escola> {
+        const { endereco, ...data } = updateEscolaDto;
+
         const scholl = await this.findOne(id)
-        if(updateEscolaDto.Endereco && scholl.enderecoId){
-            await this.prisma.endereco.update({
-                where: {id: scholl.enderecoId},
-                data: updateEscolaDto.Endereco
-            })
-            delete updateEscolaDto.Endereco
-        }
+        
+        if(updateEscolaDto.endereco && scholl.enderecoId)
+            await this.enderecoservice.update(scholl.enderecoId, updateEscolaDto.endereco)
 
         return await this.prisma.escola.update({
             where:{
                 id
             },
-            data: updateEscolaDto
+            data: data
         })
     }
     

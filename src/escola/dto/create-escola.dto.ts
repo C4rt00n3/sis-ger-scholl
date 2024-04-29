@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { NivelEscolar } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsOptional, IsString, IsInt, ValidateNested, IsDefined, IsObject } from 'class-validator';
+import { IsOptional, IsString, IsInt, ValidateNested, IsDefined, IsObject, IsNotEmpty, IsEnum } from 'class-validator';
 import { CreateEnderecoDto } from 'src/endereco/dto/create-endereco.dto';
 
 export class CreateEscolaDto {
@@ -24,9 +25,9 @@ export class CreateEscolaDto {
   secretaria?: string;
 
   @ApiProperty({ description: 'CNPJ da escola (opcional)', type: 'string', required: false })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  cnpj?: string;
+  cnpj: string;
 
   @ApiProperty({ description: 'Cadastro do MEC da escola (opcional)', type: 'string', required: false })
   @IsOptional()
@@ -58,20 +59,10 @@ export class CreateEscolaDto {
   @IsString()
   coordPedagogico?: string;
 
-  @ApiProperty({ description: 'URL da foto do aluno (opcional)', type: 'string', required: false })
-  @IsOptional()
-  @IsString()
-  fotoAluno?: string;
-
-  @ApiProperty({ description: 'Configurações do servidor (opcional)', type: 'string', required: false })
-  @IsOptional()
-  @IsString()
-  configServidor?: string;
-
   @ApiProperty({ description: 'Email da escola (opcional)', type: 'string', required: false })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  email?: string;
+  email: string;
 
   @ApiProperty({ description: 'Página da escola em rede social (opcional)', type: 'string', required: false })
   @IsOptional()
@@ -86,20 +77,18 @@ export class CreateEscolaDto {
   @ApiProperty({ description: 'Documento de autorização do secretário (opcional)', type: 'string', required: false })
   @IsOptional()
   @IsString()
-   docAutorizacaoSecretario?: string;
+  docAutorizacaoSecretario?: string;
 
   @ApiProperty({ description: 'Tipo de escola', type: 'string' })
-  @IsString()
-  tipo: string;
 
-  @ApiProperty({ description: 'Nível escolar', type: 'string' })
-  @IsString()
-  nivel: string;
+  @ApiProperty({ description: 'Nível escolar', type: String, enum: NivelEscolar })
+  @IsEnum(NivelEscolar)
+  nivel: NivelEscolar;
 
   @ApiProperty({ description: 'Endereco do aluno', type: CreateEnderecoDto, required: false })
   @ValidateNested()
   @IsDefined()
   @IsObject()
   @Type(() => CreateEnderecoDto)
-  Endereco: CreateEnderecoDto
+  endereco: CreateEnderecoDto
 }

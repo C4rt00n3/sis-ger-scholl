@@ -5,21 +5,18 @@ CREATE TABLE `Escola` (
     `nomeFantasia` VARCHAR(150) NULL,
     `entidadeMantenedora` VARCHAR(100) NULL,
     `secretaria` VARCHAR(100) NULL,
-    `cnpj` VARCHAR(20) NULL,
+    `cnpj` VARCHAR(20) NOT NULL,
     `cadastroMEC` VARCHAR(30) NULL,
     `fotoEscola` VARCHAR(200) NULL,
     `nomeFotoEscola` VARCHAR(191) NULL,
     `diretor` VARCHAR(191) NULL,
     `secretario` VARCHAR(191) NULL,
     `coordPedagogico` VARCHAR(191) NULL,
-    `fotoAluno` VARCHAR(200) NULL,
-    `configServidor` VARCHAR(200) NULL,
     `email` VARCHAR(191) NULL,
     `paginaRedeSocial` VARCHAR(191) NULL,
     `docAutorizacaoDiretor` VARCHAR(200) NULL,
     `docAutorizacaoSecretario` VARCHAR(200) NULL,
-    `tipo` VARCHAR(50) NOT NULL,
-    `nivel` VARCHAR(50) NOT NULL,
+    `nivel` ENUM('ENSINO_FUNDAMENTAL', 'ENSINO_MEDIO', 'ENSINO_SUPERIOR') NOT NULL,
     `enderecoId` INTEGER NOT NULL,
     `alunoTransferenciaId` INTEGER NULL,
 
@@ -69,12 +66,11 @@ CREATE TABLE `Funcionario` (
 -- CreateTable
 CREATE TABLE `Aluno` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `nome` VARCHAR(191) NOT NULL,
     `celularAluno` VARCHAR(191) NULL,
+    `nome` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NULL,
     `mudancaNome` VARCHAR(191) NULL,
     `procedAluno` VARCHAR(191) NULL,
-    `docPendentesSimNao` BOOLEAN NULL DEFAULT true,
     `ficheiro` VARCHAR(191) NULL,
     `alimentos` VARCHAR(191) NULL,
     `areaProtecaoGov` VARCHAR(191) NULL,
@@ -116,25 +112,6 @@ CREATE TABLE `Images` (
     `tituloEleitorId` INTEGER NULL,
     `situacaoMilitarId` INTEGER NULL,
 
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `RG` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `rgNumero` VARCHAR(10) NOT NULL,
-    `cpf` VARCHAR(11) NOT NULL,
-    `dataExpedicao` DATETIME(3) NULL,
-    `dataNascimento` DATETIME(3) NOT NULL,
-    `orgaoEmissor` VARCHAR(191) NOT NULL,
-    `UF` ENUM('AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO') NOT NULL,
-    `mae` VARCHAR(191) NULL,
-    `pai` VARCHAR(191) NULL,
-    `naturalidade` VARCHAR(191) NOT NULL,
-    `docOrigem` VARCHAR(191) NOT NULL,
-
-    UNIQUE INDEX `RG_rgNumero_key`(`rgNumero`),
-    UNIQUE INDEX `RG_cpf_key`(`cpf`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -186,18 +163,38 @@ CREATE TABLE `SituacaoMilitar` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `rg` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `rgNumero` VARCHAR(191) NOT NULL,
+    `cpf` VARCHAR(191) NOT NULL,
+    `dataExpedicao` DATETIME(3) NULL,
+    `dataNascimento` DATETIME(3) NOT NULL,
+    `orgaoEmissor` VARCHAR(191) NOT NULL,
+    `UF` VARCHAR(191) NOT NULL,
+    `mae` VARCHAR(191) NULL,
+    `pai` VARCHAR(191) NULL,
+    `naturalidade` VARCHAR(191) NOT NULL,
+    `docOrigem` VARCHAR(191) NOT NULL,
+    `documentoId` INTEGER NULL,
+
+    UNIQUE INDEX `rg_rgNumero_key`(`rgNumero`),
+    UNIQUE INDEX `rg_cpf_key`(`cpf`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `Documento` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `NrRegistro` INTEGER NULL,
     `livro` VARCHAR(191) NULL,
     `folha` VARCHAR(191) NULL,
-    `sUSId` INTEGER NULL,
     `rGId` INTEGER NULL,
+    `sUSId` INTEGER NULL,
     `tituloEleitorId` INTEGER NULL,
     `situacaoMilitarId` INTEGER NULL,
 
-    UNIQUE INDEX `Documento_sUSId_key`(`sUSId`),
     UNIQUE INDEX `Documento_rGId_key`(`rGId`),
+    UNIQUE INDEX `Documento_sUSId_key`(`sUSId`),
     UNIQUE INDEX `Documento_tituloEleitorId_key`(`tituloEleitorId`),
     UNIQUE INDEX `Documento_situacaoMilitarId_key`(`situacaoMilitarId`),
     PRIMARY KEY (`id`)
@@ -352,25 +349,22 @@ CREATE TABLE `MotivoSaida` (
 -- CreateTable
 CREATE TABLE `Matricula` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `Dt_Matricula` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `AnoLetivo` INTEGER NOT NULL,
-    `Nivel` VARCHAR(50) NULL,
-    `horarioAulaID` VARCHAR(30) NULL,
-    `HorasAnual` VARCHAR(191) NULL,
-    `Frequencia` DOUBLE NULL,
+    `dt_Matricula` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `anoLetivo` INTEGER NOT NULL,
+    `nivel` ENUM('ENSINO_FUNDAMENTAL', 'ENSINO_MEDIO', 'ENSINO_SUPERIOR') NOT NULL,
+    `horasAnual` VARCHAR(191) NULL,
+    `frequencia` DOUBLE NULL,
     `dataSaida` DATETIME(3) NULL,
-    `Resultado Final` VARCHAR(191) NULL,
-    `LocalFotoAluno` VARCHAR(191) NULL,
-    `Dt_Alteracao` DATETIME(3) NOT NULL,
-    `SSMA_TimeStamp` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `escolaId` INTEGER NOT NULL,
+    `resultadoFinal` VARCHAR(191) NULL,
+    `localFotoAluno` VARCHAR(191) NULL,
+    `dt_Alteracao` DATETIME(3) NOT NULL,
+    `ceratedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `escolaId` INTEGER NULL,
     `alunoId` INTEGER NOT NULL,
-    `Resultado` ENUM('ATIVO', 'DESATIVADO', 'EM_ANDAMENTO') NOT NULL DEFAULT 'EM_ANDAMENTO',
-    `Turno` ENUM('Matutino', 'Vespertino', 'Noturno') NOT NULL,
+    `status` ENUM('ATIVO', 'DESATIVADO', 'EM_ANDAMENTO') NOT NULL DEFAULT 'EM_ANDAMENTO',
+    `turno` ENUM('Matutino', 'Vespertino', 'Noturno') NOT NULL,
 
-    UNIQUE INDEX `Matricula_escolaId_key`(`escolaId`),
     UNIQUE INDEX `Matricula_alunoId_key`(`alunoId`),
-    INDEX `Matricula_horarioAulaID_idx`(`horarioAulaID`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -437,17 +431,21 @@ CREATE TABLE `Ribbons` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `tblUsuários` (
+CREATE TABLE `Usuarios` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `usuario` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NOT NULL,
     `alcunha` VARCHAR(191) NULL,
     `senha` VARCHAR(191) NOT NULL,
     `bloqueado` BOOLEAN NULL DEFAULT false,
     `userSetor` VARCHAR(191) NULL,
     `strDataHora` DATETIME(3) NULL,
-    `SSMA_TimeStamp` DATETIME(3) NOT NULL,
+    `escolaId` INTEGER NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-    INDEX `tblUsuários$id`(`id`),
+    UNIQUE INDEX `Usuarios_usuario_key`(`usuario`),
+    UNIQUE INDEX `Usuarios_email_key`(`email`),
+    INDEX `Usuarios_id_idx`(`id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -485,16 +483,16 @@ ALTER TABLE `Endereco` ADD CONSTRAINT `Endereco_alunoTransferenciaId_fkey` FOREI
 ALTER TABLE `Funcionario` ADD CONSTRAINT `Funcionario_escolaId_fkey` FOREIGN KEY (`escolaId`) REFERENCES `Escola`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Aluno` ADD CONSTRAINT `Aluno_documentoId_fkey` FOREIGN KEY (`documentoId`) REFERENCES `Documento`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Aluno` ADD CONSTRAINT `Aluno_documentoId_fkey` FOREIGN KEY (`documentoId`) REFERENCES `Documento`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Aluno` ADD CONSTRAINT `Aluno_convenioId_fkey` FOREIGN KEY (`convenioId`) REFERENCES `Convenio`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Aluno` ADD CONSTRAINT `Aluno_convenioId_fkey` FOREIGN KEY (`convenioId`) REFERENCES `Convenio`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Aluno` ADD CONSTRAINT `Aluno_alunoTransferenciaId_fkey` FOREIGN KEY (`alunoTransferenciaId`) REFERENCES `AlunoTransferencia`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Aluno` ADD CONSTRAINT `Aluno_alunoTransferenciaId_fkey` FOREIGN KEY (`alunoTransferenciaId`) REFERENCES `AlunoTransferencia`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Aluno` ADD CONSTRAINT `Aluno_enderecoId_fkey` FOREIGN KEY (`enderecoId`) REFERENCES `Endereco`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Aluno` ADD CONSTRAINT `Aluno_enderecoId_fkey` FOREIGN KEY (`enderecoId`) REFERENCES `Endereco`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Aluno` ADD CONSTRAINT `Aluno_escolaId_fkey` FOREIGN KEY (`escolaId`) REFERENCES `Escola`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -509,7 +507,7 @@ ALTER TABLE `Aluno` ADD CONSTRAINT `Aluno_turmaId_fkey` FOREIGN KEY (`turmaId`) 
 ALTER TABLE `MedicamentosAlergia` ADD CONSTRAINT `MedicamentosAlergia_alunoId_fkey` FOREIGN KEY (`alunoId`) REFERENCES `Aluno`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Images` ADD CONSTRAINT `Images_rGId_fkey` FOREIGN KEY (`rGId`) REFERENCES `RG`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Images` ADD CONSTRAINT `Images_rGId_fkey` FOREIGN KEY (`rGId`) REFERENCES `rg`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Images` ADD CONSTRAINT `Images_sUSId_fkey` FOREIGN KEY (`sUSId`) REFERENCES `SUS`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -521,16 +519,16 @@ ALTER TABLE `Images` ADD CONSTRAINT `Images_tituloEleitorId_fkey` FOREIGN KEY (`
 ALTER TABLE `Images` ADD CONSTRAINT `Images_situacaoMilitarId_fkey` FOREIGN KEY (`situacaoMilitarId`) REFERENCES `SituacaoMilitar`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Documento` ADD CONSTRAINT `Documento_sUSId_fkey` FOREIGN KEY (`sUSId`) REFERENCES `SUS`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Documento` ADD CONSTRAINT `Documento_rGId_fkey` FOREIGN KEY (`rGId`) REFERENCES `rg`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Documento` ADD CONSTRAINT `Documento_rGId_fkey` FOREIGN KEY (`rGId`) REFERENCES `RG`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Documento` ADD CONSTRAINT `Documento_sUSId_fkey` FOREIGN KEY (`sUSId`) REFERENCES `SUS`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Documento` ADD CONSTRAINT `Documento_tituloEleitorId_fkey` FOREIGN KEY (`tituloEleitorId`) REFERENCES `TituloEleitor`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Documento` ADD CONSTRAINT `Documento_tituloEleitorId_fkey` FOREIGN KEY (`tituloEleitorId`) REFERENCES `TituloEleitor`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Documento` ADD CONSTRAINT `Documento_situacaoMilitarId_fkey` FOREIGN KEY (`situacaoMilitarId`) REFERENCES `SituacaoMilitar`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Documento` ADD CONSTRAINT `Documento_situacaoMilitarId_fkey` FOREIGN KEY (`situacaoMilitarId`) REFERENCES `SituacaoMilitar`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `FiliacaoAluno` ADD CONSTRAINT `FiliacaoAluno_alunoId_fkey` FOREIGN KEY (`alunoId`) REFERENCES `Aluno`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -551,10 +549,10 @@ ALTER TABLE `Parada` ADD CONSTRAINT `Parada_rotaId_fkey` FOREIGN KEY (`rotaId`) 
 ALTER TABLE `MotivoSaida` ADD CONSTRAINT `MotivoSaida_alunoTransferenciaId_fkey` FOREIGN KEY (`alunoTransferenciaId`) REFERENCES `AlunoTransferencia`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Matricula` ADD CONSTRAINT `Matricula_alunoId_fkey` FOREIGN KEY (`alunoId`) REFERENCES `Aluno`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Matricula` ADD CONSTRAINT `Matricula_alunoId_fkey` FOREIGN KEY (`alunoId`) REFERENCES `Aluno`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Matricula` ADD CONSTRAINT `Matricula_escolaId_fkey` FOREIGN KEY (`escolaId`) REFERENCES `Escola`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Matricula` ADD CONSTRAINT `Matricula_escolaId_fkey` FOREIGN KEY (`escolaId`) REFERENCES `Escola`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Materia` ADD CONSTRAINT `Materia_matriculaId_fkey` FOREIGN KEY (`matriculaId`) REFERENCES `Matricula`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -564,6 +562,9 @@ ALTER TABLE `Nota` ADD CONSTRAINT `Nota_materiaId_fkey` FOREIGN KEY (`materiaId`
 
 -- AddForeignKey
 ALTER TABLE `Falta` ADD CONSTRAINT `Falta_materiaId_fkey` FOREIGN KEY (`materiaId`) REFERENCES `Materia`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Usuarios` ADD CONSTRAINT `Usuarios_escolaId_fkey` FOREIGN KEY (`escolaId`) REFERENCES `Escola`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `_EnderecoToTranspEscolar` ADD CONSTRAINT `_EnderecoToTranspEscolar_A_fkey` FOREIGN KEY (`A`) REFERENCES `Endereco`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

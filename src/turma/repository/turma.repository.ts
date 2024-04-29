@@ -1,4 +1,4 @@
-import { Turma } from "@prisma/client";
+import { Turma, Usuarios } from "@prisma/client";
 import { CreateTurmaDto } from "../dto/create-turma.dto";
 import { UpdateTurmaDto } from "../dto/update-turma.dto";
 
@@ -8,7 +8,7 @@ export abstract class TurmaRepository {
      * @param createTurmaDto Um objeto contendo os dados necessários para criar uma nova turma.
      * @returns Uma Promise que resolve com o objeto de turma criado.
      */
-    abstract create(createTurmaDto: CreateTurmaDto): Promise<Turma>
+    abstract create(createTurmaDto: CreateTurmaDto, user: Usuarios): Promise<Turma>
 
     /**
      * Atualiza uma turma existente com base no ID e nos dados fornecidos em `updateTurmaDto`.
@@ -38,4 +38,6 @@ export abstract class TurmaRepository {
      * @returns Uma Promise que resolve após a remoção da turma. Se nenhuma turma for encontrada com o ID fornecido, retorna null.
      */
     abstract remove(id: number): Promise<void>
+
+    abstract analytics(): Promise<any>
 }

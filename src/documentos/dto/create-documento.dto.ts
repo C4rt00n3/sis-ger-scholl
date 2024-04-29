@@ -7,11 +7,6 @@ import { CreateTituloEleitorDTO } from './create-tituloEleitor.dto';
 import { CreateRgDto } from './create-rgDoc.dto';
 
 export class CreateDocumentoDto {
-    @ApiProperty({ description: 'Número de registro do documento', required: false })
-    @IsNumber()
-    @IsOptional()
-    NrRegistro: number;
-
     @ApiProperty({ description: 'Número do livro do documento', required: false })
     @IsString()
     @IsOptional()

@@ -4,8 +4,10 @@ import { EscolaController } from './escola.controller';
 import { PrismaService } from 'src/prisma.service';
 import { EscolaRepository } from './repository/escola.repository';
 import { EscolaRepositoryPrisma } from './repository/prisma/escola.prisma';
+import { EnderecoModule } from 'src/endereco/endereco.module';
 
 @Module({
+  imports: [ EnderecoModule ],
   controllers: [EscolaController],
   providers: [
     EscolaService, 
@@ -15,6 +17,6 @@ import { EscolaRepositoryPrisma } from './repository/prisma/escola.prisma';
       useClass: EscolaRepositoryPrisma
     }
   ],
-  exports: [EscolaService]
+  exports: [ EscolaService ]
 })
 export class EscolaModule {}

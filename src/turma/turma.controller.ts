@@ -3,6 +3,8 @@ import { TurmaService } from './turma.service';
 import { CreateTurmaDto } from './dto/create-turma.dto';
 import { UpdateTurmaDto } from './dto/update-turma.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Usuarios } from '@prisma/client';
+import { GetUser } from '@SRC/auth/get-user.decorator';
 
 @Controller('turma')
 @ApiTags("Turmas")
@@ -11,8 +13,9 @@ export class TurmaController {
   constructor(private readonly turmaService: TurmaService) {}
 
   @Post()
-  create(@Body() createTurmaDto: CreateTurmaDto) {
-    return this.turmaService.create(createTurmaDto);
+
+  create(@Body() createTurmaDto: CreateTurmaDto,  @GetUser() user: Usuarios) {
+    return this.turmaService.create(createTurmaDto, user);
   }
 
   @Get()

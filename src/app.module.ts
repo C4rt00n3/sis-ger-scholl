@@ -12,6 +12,8 @@ import { EscolaModule } from './escola/escola.module';
 import { SerieModule } from './serie/serie.module';
 import { TurmaModule } from './turma/turma.module';
 import { FiliacaoAlunoModule } from './filiacao-aluno/filiacao-aluno.module';
+import { AuthModule } from './auth/auth.module';
+import { PrismaService } from './prisma.service';
 
 @Module({
   imports: [
@@ -25,9 +27,10 @@ import { FiliacaoAlunoModule } from './filiacao-aluno/filiacao-aluno.module';
     EscolaModule,
     SerieModule,
     TurmaModule,
-    FiliacaoAlunoModule
+    FiliacaoAlunoModule,
+    AuthModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, PrismaService],
 })
 export class AppModule { }

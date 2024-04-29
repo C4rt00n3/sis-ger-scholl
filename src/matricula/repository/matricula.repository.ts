@@ -1,4 +1,4 @@
-import { Matricula } from "@prisma/client";
+import { Matricula, Usuarios } from "@prisma/client";
 import { CreateMatriculaDto } from "../dto/create-matricula.dto";
 import { UpdateMatriculaDto } from "../dto/update-matricula.dto";
 
@@ -8,7 +8,7 @@ export abstract class MatriculaRepository {
      * @param createMatriculaDto O DTO contendo os dados para criar a matrícula.
      * @returns A matrícula criada.
      */
-    abstract create(createMatriculaDto: CreateMatriculaDto): Promise<Matricula>;
+    abstract create(createMatriculaDto: CreateMatriculaDto, user: Usuarios): Promise<Matricula>;
 
     /**
      * Retorna uma única matrícula com base no ID fornecido.

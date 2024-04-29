@@ -7,6 +7,11 @@ export class AppController {
 
   @Get()
   getHello() {
-    return this.appService.getHello();
+    return this.appService.analytics();
+  }
+
+  @Get("/test")
+  test() {
+    return this.appService.test()
   }
 }

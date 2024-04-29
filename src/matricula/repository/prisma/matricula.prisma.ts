@@ -1,39 +1,57 @@
-import { $Enums, Aluno, Escola, Matricula } from "@prisma/client";
+import { Aluno, Matricula, Usuarios } from "@prisma/client";
 import { CreateMatriculaDto } from "src/matricula/dto/create-matricula.dto";
 import { UpdateMatriculaDto } from "src/matricula/dto/update-matricula.dto";
 import { MatriculaRepository } from "../matricula.repository"
 import { PrismaService } from "src/prisma.service";
 import { AlunoService } from "src/aluno/aluno.service";
-import { EscolaService } from "src/escola/escola.service";
+import { Injectable, NotFoundException } from "@nestjs/common";
 
 /**
  * Implementação da interface `MatriculaRepository` utilizando o Prisma como ORM.
  */
+@Injectable()
 export class MatriculaPrismaRepository implements MatriculaRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly alunoService: AlunoService,
-        private readonly escolaSerice: EscolaService
-    ) {}
+    ) { }
 
     /**
      * Cria uma nova matrícula com base nos dados fornecidos no DTO.
      * @param createMatriculaDto O DTO contendo os dados para criar a matrícula.
      * @returns A matrícula criada.
      */
-    async create(createMatriculaDto: CreateMatriculaDto): Promise<Matricula> {
-        const matricula = {} as Matricula;
-        Object.assign(matricula, createMatriculaDto);
-
-        const aluno = await this.alunoService.create(createMatriculaDto.Aluno)
-        const escola = await this.escolaSerice.create(createMatriculaDto.Escola)
-        
-        matricula.alunoId = aluno.id
-        matricula.escolaId = escola.id
-        
-        return await this.prisma.matricula.create({
-            data: matricula
-        });
+    async create(createMatriculaDto: CreateMatriculaDto, user: Usuarios): Promise<Matricula> {
+        let aluno: Aluno | null = null
+        try {
+            const {Aluno, ...data} = createMatriculaDto;
+            const matricula = data as Matricula;
+            aluno = await this.alunoService.create(createMatriculaDto.Aluno, user)
+            return await this.prisma.matricula.create({
+                data: {
+                    ...matricula,
+                    alunoId: aluno.id,
+                    escolaId: user.escolaId
+                },
+                include: {
+                    Aluno: {
+                        select:{
+                            Documentos: true,
+                            Endereco: true,
+                            Convenio: true,
+                            AlunoTransferencia: true,
+                            Serie: true,
+                            Turma: true,
+                            filiacao: true
+                        }
+                    },
+                    Escola: true
+                }
+            });
+        } catch (error) {
+            if(aluno) await this.alunoService.remove(aluno.id)
+            throw error
+        }
     }
 
     /**
@@ -42,9 +60,9 @@ export class MatriculaPrismaRepository implements MatriculaRepository {
      * @returns A matrícula encontrada.
      */
     async findOne(id: number): Promise<Matricula> {
-        return await this.prisma.matricula.findUnique({
+        return await this.prisma.matricula.findUniqueOrThrow({
             where: { id }
-        });
+        }).then(e=>e).catch(_=> {throw new NotFoundException("Matricula não encontrada")});
     }
 
     /**
@@ -71,7 +89,28 @@ export class MatriculaPrismaRepository implements MatriculaRepository {
      */
     async findAll(filters: {}): Promise<Matricula[]> {
         return await this.prisma.matricula.findMany({
-            where: filters
+            where: filters,
+            include: {
+                Aluno: {
+                    include:{
+                        Serie: true,
+                        Turma: true,
+                        Documentos: {
+                            include: {
+                                SUS: true,
+                                RG: true,
+                                SituacaoMilitar: true,
+                                TituloEleitor: true
+                            }
+                        }
+                    }
+                },
+                Materia: {
+                    select: {
+                        faltas: true
+                    }
+                }
+            }
         });
     }
 
@@ -80,9 +119,7 @@ export class MatriculaPrismaRepository implements MatriculaRepository {
      * @param id O ID da matrícula a ser removida.
      */
     async delete(id: number): Promise<void> {
-        await this.prisma.matricula.delete({
-            where: { id }
-        });
+        const matricula = await this.findOne(id)
+        await this.alunoService.remove(matricula.alunoId)
     }
-
 }

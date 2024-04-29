@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateMatriculaDto } from './dto/create-matricula.dto';
 import { UpdateMatriculaDto } from './dto/update-matricula.dto';
 import { MatriculaRepository } from './repository/matricula.repository';
-import { Matricula } from '@prisma/client';
+import { Matricula, Usuarios } from '@prisma/client';
 
 @Injectable()
 export class MatriculaService {
@@ -13,8 +13,8 @@ export class MatriculaService {
    * @param createMatriculaDto O DTO contendo os dados para criar a matrícula.
    * @returns A matrícula criada.
    */
-  async create(createMatriculaDto: CreateMatriculaDto): Promise<Matricula> {
-    return await this.matriculaRepo.create(createMatriculaDto);
+  async create(createMatriculaDto: CreateMatriculaDto, user: Usuarios): Promise<Matricula> {
+    return await this.matriculaRepo.create(createMatriculaDto, user);
   }
 
   /**

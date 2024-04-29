@@ -1,7 +1,7 @@
 import { CreateTurmaDto } from "src/turma/dto/create-turma.dto";
 import { UpdateTurmaDto } from "src/turma/dto/update-turma.dto";
 import { TurmaRepository } from "../turma.repository";
-import { Prisma, Turma } from "@prisma/client";
+import { Prisma, Turma, Usuarios } from "@prisma/client";
 import { PrismaService } from "src/prisma.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { DefaultArgs } from "@prisma/client/runtime/library";
@@ -15,19 +15,19 @@ export class TurmaRepositoryPrisma implements TurmaRepository {
      * @param createTurmaDto Um objeto contendo os dados necessários para criar uma nova turma.
      * @returns Uma Promise que resolve com o objeto de turma criado.
      */
-    async create(createTurmaDto: CreateTurmaDto): Promise<Turma> {
+    async create(createTurmaDto: CreateTurmaDto, user: Usuarios): Promise<Turma> {
         const data = {} as Turma;
         Object.assign(data, createTurmaDto);
         const turma = await this.searchWithParmas({
             where: {
-                Nome_Turmas: createTurmaDto.nomeTurma,
+                nome: createTurmaDto.nome,
                 escolaId: data.escolaId
             }
         })
 
         if (!turma)
             return await this.prisma.turma.create({ data });
-        
+
         return turma[0]
     }
 
@@ -79,4 +79,41 @@ export class TurmaRepositoryPrisma implements TurmaRepository {
         await this.findOne(id)
         await this.prisma.turma.delete({ where: { id } });
     }
+
+    /**
+     * Calcula estatísticas relacionadas aos alunos, como total de alunos com documentos específicos preenchidos,
+     * total de alunos, total de turmas e total de filiações de alunos.
+     * @returns Um objeto contendo as estatísticas calculadas.
+     */
+    async analytics() {
+        // Conta o total de alunos que têm o RG, SUS, Título de Eleitor ou situação militar pendente
+        const doc = await this.prisma.documento.count({
+            where: {
+                OR: [
+                    { RG: { NOT: { documentoId: null } } },
+                    { SUS: { NOT: { Documento: null } } },
+                    { TituloEleitor: { NOT: { Documento: null } } },
+                    { SituacaoMilitar: { NOT: { Documento: null } } }
+                ]
+            }
+        });
+
+        // Conta o total de alunos
+        const alunosTotal = await this.prisma.aluno.count();
+
+        // Conta o total de turmas
+        const turmasTotal = await this.prisma.turma.count();
+
+        // Conta o total de filiações de alunos
+        const filiacoesTotal = await this.prisma.filiacaoAluno.count();
+
+        // Retorna um objeto com as estatísticas calculadas
+        return {
+            docCount: doc,
+            totalAlunos: alunosTotal,
+            totalTurmas: turmasTotal,
+            totalFiliacoes: filiacoesTotal
+        };
+    }
+
 }

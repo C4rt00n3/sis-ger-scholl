@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDefined, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsDefined, IsEnum, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { UpdateEnderecoDto } from 'src/endereco/dto/update-endereco.dto';
+import { NivelEscolar } from '@prisma/client';
 
 export class UpdateEscolaDto {
     @ApiProperty({ description: 'Nome completo da escola', type: 'string' })
@@ -58,17 +59,7 @@ export class UpdateEscolaDto {
     @IsOptional()
     @IsString()
     coordPedagogico?: string;
-  
-    @ApiProperty({ description: 'URL da foto do aluno (opcional)', type: 'string', required: false })
-    @IsOptional()
-    @IsString()
-    fotoAluno?: string;
-  
-    @ApiProperty({ description: 'Configurações do servidor (opcional)', type: 'string', required: false })
-    @IsOptional()
-    @IsString()
-    configServidor?: string;
-  
+
     @ApiProperty({ description: 'Email da escola (opcional)', type: 'string', required: false })
     @IsOptional()
     @IsString()
@@ -87,17 +78,12 @@ export class UpdateEscolaDto {
     @ApiProperty({ description: 'Documento de autorização do secretário (opcional)', type: 'string', required: false })
     @IsOptional()
     @IsString()
-     docAutorizacaoSecretario?: string;
+    docAutorizacaoSecretario?: string;
   
-    @ApiProperty({ description: 'Tipo de escola', type: 'string' })
-    @IsString()
+    @ApiProperty({ description: 'Nível escolar', type: String, enum: NivelEscolar })
     @IsOptional()
-    tipo: string;
-  
-    @ApiProperty({ description: 'Nível escolar', type: 'string' })
-    @IsString()
-    @IsOptional()
-    nivel: string;
+    @IsEnum(NivelEscolar)
+    nivel: NivelEscolar;
   
     @ApiProperty({ description: 'Endereco do aluno', type: UpdateEnderecoDto, required: false })
     @IsOptional()
@@ -105,6 +91,6 @@ export class UpdateEscolaDto {
     @IsDefined()
     @IsObject()
     @Type(() => UpdateEnderecoDto)
-    Endereco: UpdateEnderecoDto
+    endereco: UpdateEnderecoDto
 }
  

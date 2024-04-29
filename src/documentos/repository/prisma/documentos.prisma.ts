@@ -2,7 +2,7 @@ import { CreateDocumentoDto } from "src/documentos/dto/create-documento.dto";
 import { UpdateDocumentoDto } from "src/documentos/dto/update/update-documento.dto";
 import { Documento, Prisma, RG, SUS, SituacaoMilitar, TituloEleitor } from "@prisma/client";
 import { PrismaService } from "src/prisma.service";
-import { ConflictException, Delete, Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Delete, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { DocumentosRepository } from "src/documentos/repository/documentos.repository";
 import { CreateSusDto } from "src/documentos/dto/cerate-susDoc.dto";
 import { CreateRgDto } from "src/documentos/dto/create-rgDoc.dto";
@@ -14,7 +14,9 @@ import { CreateTituloEleitorDTO } from "src/documentos/dto/create-tituloEleitor.
  */
 @Injectable()
 export class DocumentosRepositoryPrisma implements DocumentosRepository {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService
+    ) { }
 
     /**
      * Cria um novo documento com base nos dados fornecidos no DTO.
@@ -22,19 +24,39 @@ export class DocumentosRepositoryPrisma implements DocumentosRepository {
      * @returns O documento criado.
      */
     async create(createDocumentoDto: CreateDocumentoDto): Promise<Documento> {
-        let documentoData: Documento
-        documentoData = await this.createDocumentData(createDocumentoDto);
-        const documento = await this.prisma.documento.create({
-            data: documentoData,
-            include: {
-                SUS: true,
-                RG: true,
-                SituacaoMilitar: true,
-                TituloEleitor: true
+        let documentoData: Documento;
+        try {
+            documentoData = await this.createDocumentData(createDocumentoDto);
+            return await this.prisma.documento.create({
+                data: {
+                    ...documentoData,
+                }
+            })
+        } catch (error) {
+            if (documentoData) {
+                await this.rollbackData(documentoData);
             }
-        });
+            this.showErrors(error);
+            throw error;
+        }
+    }
 
-        return documento;
+    /**
+     * Desfaz as operações realizadas durante a criação do documento em caso de erro.
+     * @param documentoData O objeto de dados do documento que foi utilizado durante a criação.
+     */
+    async rollbackData(documentData: Documento): Promise<void> {
+        const deleteOperations = [];
+        if (documentData.sUSId)
+            deleteOperations.push(this.prisma.sUS.delete({ where: { id: documentData.sUSId } }));
+        if (documentData.situacaoMilitarId)
+            deleteOperations.push(this.prisma.situacaoMilitar.delete({ where: { id: documentData.situacaoMilitarId } }));
+        if (documentData.tituloEleitorId)
+            deleteOperations.push(this.prisma.tituloEleitor.delete({ where: { id: documentData.tituloEleitorId } }));
+        if (documentData.rGId)
+            deleteOperations.push(this.prisma.rG.delete({ where: { id: documentData.rGId } }));
+
+        await Promise.all(deleteOperations);
     }
 
     /**
@@ -47,17 +69,17 @@ export class DocumentosRepositoryPrisma implements DocumentosRepository {
         const documentData = document as Documento;
         try {
             if (SUS) {
-                const sus = await this.createSus(SUS);
+                const sus = await this.createSus(SUS)
                 documentData.sUSId = sus.id;
             }
 
             if (SituacaoMilitar) {
-                const situacaoMilitar = await this.createSituacaoMilitar(SituacaoMilitar);
+                const situacaoMilitar = await this.createSituacaoMilitar(SituacaoMilitar)
                 documentData.situacaoMilitarId = situacaoMilitar.id;
             }
 
             if (TituloEleitor) {
-                const tituloEleitor = await this.createTituloEleitor(TituloEleitor);
+                const tituloEleitor = await this.createTituloEleitor(TituloEleitor)
                 documentData.tituloEleitorId = tituloEleitor.id;
             }
 
@@ -66,33 +88,14 @@ export class DocumentosRepositoryPrisma implements DocumentosRepository {
                 documentData.rGId = rg.id
             }
 
-            documentData.NrRegistro = createDocumentDto.NrRegistro;
             documentData.livro = createDocumentDto.livro;
             documentData.folha = createDocumentDto.folha;
 
             return documentData;
-        }
-        catch (error) {
-            await this.rollbackData(documentData);
-            this.showErrors(error);
-            throw error;
+        }catch(error){
+            return documentData
         }
     }
-
-    /**
-     * Desfaz as operações realizadas durante a criação do documento em caso de erro.
-     * @param documentoData O objeto de dados do documento que foi utilizado durante a criação.
-     */
-    async rollbackData(documentData: Documento): Promise<void> {
-        const deleteOperations = [];
-        if (documentData.sUSId) deleteOperations.push(this.prisma.sUS.deleteMany({ where: { id: documentData.sUSId } }));
-        if (documentData.situacaoMilitarId) deleteOperations.push(this.prisma.situacaoMilitar.deleteMany({ where: { id: documentData.situacaoMilitarId } }));
-        if (documentData.tituloEleitorId) deleteOperations.push(this.prisma.tituloEleitor.deleteMany({ where: { id: documentData.tituloEleitorId } }));
-        if (documentData.rGId) deleteOperations.push(this.prisma.rG.deleteMany({ where: { id: documentData.rGId } }));
-
-        await Promise.all(deleteOperations);
-    }
-
 
     private showErrors(error: any) {
         switch (error.code) {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateTurmaDto } from './dto/create-turma.dto';
 import { UpdateTurmaDto } from './dto/update-turma.dto';
-import { Turma } from '@prisma/client';
+import { Turma, Usuarios } from '@prisma/client';
 import { TurmaRepository } from './repository/turma.repository';
 
 @Injectable()
@@ -13,8 +13,8 @@ export class TurmaService {
    * @param createTurmaDto Um objeto contendo os dados necessários para criar uma nova turma.
    * @returns Uma Promise que resolve com o objeto de turma criado.
    */
-  async create(createTurmaDto: CreateTurmaDto): Promise<Turma> {
-    return await this.turmaRepo.create(createTurmaDto);
+  async create(createTurmaDto: CreateTurmaDto, user: Usuarios): Promise<Turma> {
+    return await this.turmaRepo.create(createTurmaDto, user);
   }
 
   /**

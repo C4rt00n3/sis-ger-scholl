@@ -13,24 +13,20 @@ model Escola {
   nomeFantasia             String? @db.VarChar(150) // Nome fantasia da escola (opcional)
   entidadeMantenedora      String? @db.VarChar(100) // Entidade mantenedora da escola (opcional)
   secretaria               String? @db.VarChar(100) // Secretaria da escola (opcional)
-  cnpj                     String? @db.VarChar(20) // CNPJ da escola (opcional)
+  cnpj                     String @db.VarChar(20) // CNPJ da escola (opcional)
   cadastroMEC              String? @db.VarChar(30) // Cadastro do MEC da escola (opcional)
   fotoEscola               String? @db.VarChar(200) // URL da foto da escola (opcional)
   nomeFotoEscola           String? // Nome da foto da escola (opcional)
   diretor                  String? // Nome do diretor da escola (opcional)
   secretario               String? // Nome do secretário da escola (opcional)
   coordPedagogico          String? // Nome do coordenador pedagógico da escola (opcional)
-  fotoAluno                String? @db.VarChar(200) // URL da foto do aluno (opcional)
-  configServidor           String? @db.VarChar(200) // Configurações do servidor (opcional)
   email                    String? // Email da escola (opcional)
   paginaRedeSocial         String? // Página da escola em rede social (opcional)
   docAutorizacaoDiretor    String? @db.VarChar(200) // Documento de autorização do diretor (opcional)
   docAutorizacaoSecretario String? @db.VarChar(200) // Documento de autorização do secretário (opcional)
-  tipo                     String  @db.VarChar(50) // Tipo de escola
-  nivel                    String  @db.VarChar(50) // Nível escolar
+  nivel                    NivelEscolar // Nível escolar
 
-  endereco  Endereco?  @relation(fields: [enderecoId], references: [id])
-
+  endereco Endereco? @relation(fields: [enderecoId], references: [id])
   enderecoId Int @unique
 
   turmas               Turma[]
@@ -40,6 +36,7 @@ model Escola {
   alunos               Aluno[]
   AlunoTransferencia   AlunoTransferencia?  @relation(fields: [alunoTransferenciaId], references: [id])
   alunoTransferenciaId Int?                 @unique()
+  Usuarios             Usuarios[]
 }
 
 model Endereco {
@@ -88,12 +85,11 @@ model Aluno {
   id Int @id @default(autoincrement())
 
   // Rows
-  nome               String   @unique()
   celularAluno       String?
+  nome               String   @unique()
   email              String?
   mudancaNome        String?
   procedAluno        String?
-  docPendentesSimNao Boolean? @default(true)
   ficheiro           String?
   alimentos          String?
   areaProtecaoGov    String?
@@ -115,10 +111,10 @@ model Aluno {
   filiacao             FiliacaoAluno[]
 
   // Relações 
-  Documentos         Documento?          @relation(fields: [documentoId], references: [id])
-  Convenio           Convenio?           @relation(fields: [convenioId], references: [id])
-  AlunoTransferencia AlunoTransferencia? @relation(fields: [alunoTransferenciaId], references: [id])
-  Endereco           Endereco            @relation(fields: [enderecoId], references: [id])
+  Documentos         Documento?          @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+  Convenio           Convenio?           @relation(fields: [convenioId], references: [id], onDelete: Cascade)
+  AlunoTransferencia AlunoTransferencia? @relation(fields: [alunoTransferenciaId], references: [id], onDelete: Cascade)
+  Endereco           Endereco            @relation(fields: [enderecoId], references: [id], onDelete: Cascade)
   Matricula          Matricula?
   Escola             Escola?             @relation(fields: [escolaId], references: [id])
   escolaId           Int?
@@ -220,7 +216,6 @@ model RG {
 
 model Documento {
   id         Int     @id @default(autoincrement())
-  NrRegistro Int?
   livro      String?
   folha      String?
 
@@ -284,9 +279,9 @@ model Serie {
 model Turma {
   id          Int    @id() @default(autoincrement())
   Escola      Escola @relation(fields: [escolaId], references: [id])
-  Nome_Turmas String @db.VarChar(100)
+  nome String @db.VarChar(100)
   escolaId    Int
-
+  nivelEscolar NivelEscolar
   Alunos Aluno[]
 
   @@index([id])
@@ -376,41 +371,38 @@ model MotivoSaida {
   @@index([id])
 }
 
-model Matricula {
+model   Matricula {
   // Indentificador
   id Int @id @default(autoincrement())
 
   // Rows
-  Dt_Matricula  DateTime @default(now())
-  AnoLetivo     Int
-  Nivel         String?  @db.VarChar(50)
-  horarioAulaID String?  @db.VarChar(30)
+  dt_Matricula  DateTime @default(now())
+  anoLetivo     Int
+  nivel         NivelEscolar
 
-  HorasAnual String?
-  Frequencia Float?
+  horasAnual String?
+  frequencia Float?
   dataSaida  DateTime?
 
-  Resultado_Final String?  @map("Resultado Final")
-  LocalFotoAluno  String?
-  Dt_Alteracao    DateTime @updatedAt
-  SSMA_TimeStamp  DateTime @default(now())
+  resultadoFinal String? 
+  localFotoAluno  String?
+  dt_Alteracao    DateTime @updatedAt
+  ceratedAt  DateTime @default(now())
 
   // Relações One:One
-  Aluno  Aluno  @relation(fields: [alunoId], references: [id])
-  Escola Escola @relation(fields: [escolaId], references: [id])
+  Aluno  Aluno  @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  Escola Escola? @relation(fields: [escolaId], references: [id])
 
   // Foringkeys
-  escolaId Int @unique
+  escolaId Int?
   alunoId  Int @unique
 
   // Many:Many
   Materia Materia[]
 
   // Enums
-  Resultado Resultado @default(EM_ANDAMENTO)
-  Turno     Turno
-
-  @@index([horarioAulaID])
+  status Status @default(EM_ANDAMENTO)
+  turno     Turno
 }
 
 model Materia {
@@ -467,16 +459,19 @@ model Ribbons {
 
 model Usuarios {
   id             Int       @id @default(autoincrement())
-  usuario        String
+  usuario        String    @unique
+  email          String    @unique
   alcunha        String?
   senha          String
   bloqueado      Boolean?  @default(false)
   userSetor      String?
   strDataHora    DateTime?
-  SSMA_TimeStamp DateTime
+  Escola         Escola? @relation(fields: [escolaId], references: [id])
+  escolaId       Int?
 
-  @@index([id], map: "tblUsuários$id")
-  @@map("tblUsuários")
+  createdAt DateTime @default(now())
+
+  @@index([id])
 }
 
 enum Turno {
@@ -485,7 +480,7 @@ enum Turno {
   Noturno
 }
 
-enum Resultado {
+enum Status {
   ATIVO
   DESATIVADO
   EM_ANDAMENTO
