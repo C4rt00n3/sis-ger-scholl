@@ -1,6 +1,6 @@
-import { Serie } from "@prisma/client";
+import { Serie, Usuarios } from "@prisma/client";
 import { PrismaService } from "src/prisma.service";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { SerieRepository } from "../turma.repository";
 import { CreateSerieDto } from "src/serie/dto/create-serie.dto";
 import { UpdateSerieDto } from "src/serie/dto/update-serie.dto";
@@ -14,9 +14,16 @@ export class SerieRepositoryPrisma implements SerieRepository {
      * @param createserieDto Um objeto contendo os dados necessários para criar uma nova serie.
      * @returns Uma Promise que resolve com o objeto de serie criado.
      */
-    async create(createSerieDto: CreateSerieDto): Promise<Serie> {
+    async create(createSerieDto: CreateSerieDto, { escolaId }: Usuarios): Promise<Serie> {
         const data = {} as Serie;
-        Object.assign(data, createSerieDto);
+        Object.assign(data, { ...createSerieDto, escolaId });
+        const get = await this.prisma.serie
+            .findFirst({ where: { nomeSerie: data.nomeSerie, escolaId } })
+
+        if (get) {
+            throw new ConflictException("Já exesite uma serie com este nome")
+        }
+
         return await this.prisma.serie.create({ data });
     }
 
@@ -26,8 +33,8 @@ export class SerieRepositoryPrisma implements SerieRepository {
      * @param updateseriedto Um objeto contendo os dados a serem atualizados na serie.
      * @returns Uma Promise que resolve com o objeto de serie atualizado.
      */
-    async update(id: number, updateSerieDto: UpdateSerieDto): Promise<Serie> {
-        await this.findOne(id);
+    async update(id: number, updateSerieDto: UpdateSerieDto, user: Usuarios): Promise<Serie> {
+        await this.findOne(id, user);
         return await this.prisma.serie.update({
             where: { id },
             data: updateSerieDto
@@ -39,7 +46,7 @@ export class SerieRepositoryPrisma implements SerieRepository {
      * @param id O ID da serie a ser encontrada.
      * @returns Uma Promise que resolve com o objeto de serie encontrado. Se nenhuma turma for encontrada com o ID fornecido, lança uma exceção `NotFoundException`.
      */
-    async findOne(id: number): Promise<Serie> {
+    async findOne(id: number, user: Usuarios): Promise<Serie> {
         return await this.prisma.serie.findUniqueOrThrow({ where: { id } }).catch(_ => { throw new NotFoundException("Turma não encontrada"); });
     }
 
@@ -48,16 +55,28 @@ export class SerieRepositoryPrisma implements SerieRepository {
      * @param filters Um objeto contendo os filtros para a busca das series.
      * @returns Uma Promise que resolve com uma matriz de objetos de turma que correspondem aos filtros fornecidos.
      */
-    async findAll(filters: {}): Promise<Serie[]> {
-        return await this.prisma.serie.findMany({ where: filters });
+    async findAll(filters: {}, user: Usuarios): Promise<Serie[]> {
+        return await this.prisma.serie.findMany({
+            where: {
+                ...filters,
+                escolaId: user.escolaId,
+            },
+            include: {
+                turmas: {
+                    include: {
+                        Alunos: true
+                    }
+                }
+            }
+        });
     }
 
     /**
      * Remove uma serie com base no ID fornecido.
      * @param id O ID da serie a ser removida.
      */
-    async remove(id: number): Promise<void> {
-        await this.findOne(id)
+    async remove(id: number, user: Usuarios): Promise<void> {
+        await this.findOne(id, user)
         await this.prisma.serie.delete({ where: { id } });
     }
 }

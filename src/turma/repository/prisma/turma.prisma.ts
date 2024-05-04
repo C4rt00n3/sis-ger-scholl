@@ -3,8 +3,7 @@ import { UpdateTurmaDto } from "src/turma/dto/update-turma.dto";
 import { TurmaRepository } from "../turma.repository";
 import { Prisma, Turma, Usuarios } from "@prisma/client";
 import { PrismaService } from "src/prisma.service";
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { DefaultArgs } from "@prisma/client/runtime/library";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class TurmaRepositoryPrisma implements TurmaRepository {
@@ -21,14 +20,17 @@ export class TurmaRepositoryPrisma implements TurmaRepository {
         const turma = await this.searchWithParmas({
             where: {
                 nome: createTurmaDto.nome,
-                escolaId: data.escolaId
+                Serie: {
+                    id: data.id,
+                    escolaId: user.escolaId
+                }
             }
         })
 
-        if (!turma)
-            return await this.prisma.turma.create({ data });
+        if (turma.length != 0)
+            throw new ConflictException("Essa turma já existe")
 
-        return turma[0]
+        return await this.prisma.turma.create({ data });
     }
 
     async searchWithParmas(
@@ -44,8 +46,8 @@ export class TurmaRepositoryPrisma implements TurmaRepository {
      * @param updateTurmadto Um objeto contendo os dados a serem atualizados na turma.
      * @returns Uma Promise que resolve com o objeto de turma atualizado.
      */
-    async update(id: number, updateTurmadto: UpdateTurmaDto): Promise<Turma> {
-        await this.findOne(id);
+    async update(id: number, updateTurmadto: UpdateTurmaDto, user: Usuarios): Promise<Turma> {
+        await this.findOne(id, user);
         return await this.prisma.turma.update({
             where: { id },
             data: updateTurmadto
@@ -58,8 +60,19 @@ export class TurmaRepositoryPrisma implements TurmaRepository {
      * @param id O ID da turma a ser encontrada.
      * @returns Uma Promise que resolve com o objeto de turma encontrado. Se nenhuma turma for encontrada com o ID fornecido, lança uma exceção `NotFoundException`.
      */
-    async findOne(id: number): Promise<Turma> {
-        return await this.prisma.turma.findUniqueOrThrow({ where: { id } }).catch(_ => { throw new NotFoundException("Turma não encontrada"); });
+    async findOne(id: number, user: Usuarios): Promise<Turma> {
+        return await this.prisma.turma.findUniqueOrThrow({
+            where: {
+                id,
+                Serie: {
+                    escolaId: user.escolaId
+                }
+            },
+            include: {
+                Serie: true,
+                Alunos: true
+            }
+        }).catch(_ => { throw new NotFoundException("Turma não encontrada"); });
     }
 
     /**
@@ -67,16 +80,27 @@ export class TurmaRepositoryPrisma implements TurmaRepository {
      * @param filters Um objeto contendo os filtros para a busca das turmas.
      * @returns Uma Promise que resolve com uma matriz de objetos de turma que correspondem aos filtros fornecidos.
      */
-    async findAll(filters: {}): Promise<Turma[]> {
-        return await this.prisma.turma.findMany({ where: filters });
+    async findAll(filters: {}, user: Usuarios): Promise<Turma[]> {
+        return await this.prisma.turma.findMany({
+            where: {
+                ...filters,
+                Serie: {
+                    escolaId: user.escolaId
+                }
+            },
+            include: {
+                Serie: true,
+                Alunos: true
+            }
+        });
     }
 
     /**
      * Remove uma turma com base no ID fornecido.
      * @param id O ID da turma a ser removida.
      */
-    async remove(id: number): Promise<void> {
-        await this.findOne(id)
+    async remove(id: number, user: Usuarios): Promise<void> {
+        await this.findOne(id, user)
         await this.prisma.turma.delete({ where: { id } });
     }
 

@@ -1,5 +1,5 @@
 import { CorRaca, EstadoBrasil, Sexo } from '@prisma/client';
-import { IsNotEmpty, IsDefined, IsOptional, IsInt, IsDate, IsString, IsBoolean, IsEnum, MaxLength, ValidateNested, IsNotEmptyObject, IsObject, IsEmail, MinLength, IsArray, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import { IsNotEmpty, IsDefined, IsOptional, IsInt, IsDate, IsString, IsBoolean, IsEnum, MaxLength, ValidateNested, IsNotEmptyObject, IsObject, IsEmail, MinLength, IsArray, ArrayMinSize, ArrayMaxSize, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { CreateDocumentoDto } from 'src/documentos/dto/create-documento.dto';
@@ -102,25 +102,20 @@ export class CreateAlunoDto {
   @Type(() => CreateEnderecoDto)
   Endereco: CreateEnderecoDto;
 
-  @ApiProperty({ description: 'Serie do aluno', type: CreateSerieDto, required: true })
-  @ValidateNested()
-  @IsDefined()
-  @IsObject()
-  @Type(() => CreateSerieDto)
-  Serie: CreateSerieDto;
+  @ApiProperty({ description: 'Endereco do aluno', type: CreateEnderecoDto, required: false })
+  @IsNumber()
+  @IsNotEmpty()
+  serieId: number;
 
-  @ApiProperty({ description: 'Serie do aluno', type: CreateTurmaDto, required: false })
-  @ValidateNested()
+  @ApiProperty({description: "id da turma", required: false, type: Number})
   @IsOptional()
-  @IsObject()
-  @Type(() => CreateTurmaDto)
-  Turma?: CreateTurmaDto
+  @IsInt()
+  turmaId: number
 
   @ApiProperty({
     description: 'Informações sobre a filiação do aluno. Deve conter no mínimo 1 item e no máximo 2.',
     type: Array<CreateFiliacaoAlunoDto>,
   })
-  
   @ValidateNested({ each: true })
   @IsArray({ message: 'A filiação deve ser um array' })
   @ArrayMinSize(1, { message: 'A filiação deve ter pelo menos 1 item' })

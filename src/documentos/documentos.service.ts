@@ -3,7 +3,7 @@ import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { UpdateDocumentoDto } from './dto/update/update-documento.dto';
 import { DocumentosRepository } from './repository/documentos.repository';
 import { CreateRgDto } from './dto/create-rgDoc.dto';
-import { Documento } from '@prisma/client';
+import { Documento, Usuarios } from '@prisma/client';
 
 @Injectable()
 export class DocumentosService {
@@ -58,7 +58,7 @@ export class DocumentosService {
     return await this.documentosService.createRG(createRgDto)
   }
 
-  async rollbackData(documentoData: Documento): Promise<void> {
+  async rollbackData(documentoData: Documento, user: Usuarios): Promise<void> {
     await this.documentosService.rollbackData(documentoData)
   }
 }

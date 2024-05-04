@@ -8,28 +8,28 @@ datasource db {
 }
 
 model Escola {
-  id                       Int     @id @default(autoincrement())
-  nome                     String  @db.VarChar(150) // Nome completo da escola
-  nomeFantasia             String? @db.VarChar(150) // Nome fantasia da escola (opcional)
-  entidadeMantenedora      String? @db.VarChar(100) // Entidade mantenedora da escola (opcional)
-  secretaria               String? @db.VarChar(100) // Secretaria da escola (opcional)
-  cnpj                     String @db.VarChar(20) // CNPJ da escola (opcional)
-  cadastroMEC              String? @db.VarChar(30) // Cadastro do MEC da escola (opcional)
-  fotoEscola               String? @db.VarChar(200) // URL da foto da escola (opcional)
+  id                       Int          @id @default(autoincrement())
+  nome                     String       @db.VarChar(150) // Nome completo da escola
+  nomeFantasia             String?      @db.VarChar(150) // Nome fantasia da escola (opcional)
+  entidadeMantenedora      String?      @db.VarChar(100) // Entidade mantenedora da escola (opcional)
+  secretaria               String?      @db.VarChar(100) // Secretaria da escola (opcional)
+  cnpj                     String       @db.VarChar(20) // CNPJ da escola (opcional)
+  cadastroMEC              String?      @db.VarChar(30) // Cadastro do MEC da escola (opcional)
+  fotoEscola               String?      @db.VarChar(200) // URL da foto da escola (opcional)
   nomeFotoEscola           String? // Nome da foto da escola (opcional)
   diretor                  String? // Nome do diretor da escola (opcional)
   secretario               String? // Nome do secretário da escola (opcional)
   coordPedagogico          String? // Nome do coordenador pedagógico da escola (opcional)
   email                    String? // Email da escola (opcional)
   paginaRedeSocial         String? // Página da escola em rede social (opcional)
-  docAutorizacaoDiretor    String? @db.VarChar(200) // Documento de autorização do diretor (opcional)
-  docAutorizacaoSecretario String? @db.VarChar(200) // Documento de autorização do secretário (opcional)
+  docAutorizacaoDiretor    String?      @db.VarChar(200) // Documento de autorização do diretor (opcional)
+  docAutorizacaoSecretario String?      @db.VarChar(200) // Documento de autorização do secretário (opcional)
   nivel                    NivelEscolar // Nível escolar
 
-  endereco Endereco? @relation(fields: [enderecoId], references: [id])
-  enderecoId Int @unique
+  endereco   Endereco? @relation(fields: [enderecoId], references: [id])
+  enderecoId Int       @unique
 
-  turmas               Turma[]
+  series               Serie[]
   Matriculas           Matricula[]
   funcionarios         Funcionario[]
   funcionarioDetalhes  FuncionarioDetalhe[]
@@ -85,15 +85,15 @@ model Aluno {
   id Int @id @default(autoincrement())
 
   // Rows
-  celularAluno       String?
-  nome               String   @unique()
-  email              String?
-  mudancaNome        String?
-  procedAluno        String?
-  ficheiro           String?
-  alimentos          String?
-  areaProtecaoGov    String?
-  data_Registro      DateTime @default(now())
+  celularAluno    String?
+  nome            String   @unique()
+  email           String?
+  mudancaNome     String?
+  procedAluno     String?
+  ficheiro        String?
+  alimentos       String?
+  areaProtecaoGov String?
+  data_Registro   DateTime @default(now())
 
   // Enums
   corRaca_Aluno CorRaca
@@ -215,9 +215,9 @@ model RG {
 }
 
 model Documento {
-  id         Int     @id @default(autoincrement())
-  livro      String?
-  folha      String?
+  id    Int     @id @default(autoincrement())
+  livro String?
+  folha String?
 
   rGId              Int? @unique
   sUSId             Int? @unique
@@ -246,7 +246,6 @@ model FiliacaoAluno {
   id               Int            @id @default(autoincrement())
   nome             String
   celular          String?
-  telefoneFixo     String?        @db.VarChar(8)
   telefoneTrabalho String?        @db.VarChar(11)
   profissao        String?
   RG               String?        @db.VarChar(11)
@@ -270,21 +269,21 @@ model AlunoTransferencia {
 }
 
 model Serie {
-  id           Int          @id() @default(autoincrement())
-  nomeSerie    String       @db.VarChar(100)
+  id        Int     @id() @default(autoincrement())
+  nomeSerie String  @db.VarChar(100)
+  Escola    Escola? @relation(fields: [escolaId], references: [id])
   nivelEscolar NivelEscolar
-  Alunos       Aluno[]
+  escolaId  Int?
+  turmas    Turma[]
+  Aluno     Aluno[]
 }
 
 model Turma {
-  id          Int    @id() @default(autoincrement())
-  Escola      Escola @relation(fields: [escolaId], references: [id])
-  nome String @db.VarChar(100)
-  escolaId    Int
-  nivelEscolar NivelEscolar
-  Alunos Aluno[]
-
-  @@index([id])
+  id           Int          @id() @default(autoincrement())
+  nome         String       @db.VarChar(100)
+  Alunos       Aluno[]
+  Serie        Serie?       @relation(fields: [serieId], references: [id])
+  serieId      Int?
 }
 
 model FuncionarioDetalhe {
@@ -371,38 +370,38 @@ model MotivoSaida {
   @@index([id])
 }
 
-model   Matricula {
+model Matricula {
   // Indentificador
   id Int @id @default(autoincrement())
 
   // Rows
-  dt_Matricula  DateTime @default(now())
-  anoLetivo     Int
-  nivel         NivelEscolar
+  dt_Matricula DateTime     @default(now())
+  anoLetivo    Int
+  nivel        NivelEscolar
 
   horasAnual String?
   frequencia Float?
   dataSaida  DateTime?
 
-  resultadoFinal String? 
-  localFotoAluno  String?
-  dt_Alteracao    DateTime @updatedAt
-  ceratedAt  DateTime @default(now())
+  resultadoFinal String?
+  localFotoAluno String?
+  dt_Alteracao   DateTime @updatedAt
+  ceratedAt      DateTime @default(now())
 
   // Relações One:One
-  Aluno  Aluno  @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  Aluno  Aluno   @relation(fields: [alunoId], references: [id], onDelete: Cascade)
   Escola Escola? @relation(fields: [escolaId], references: [id])
 
   // Foringkeys
   escolaId Int?
-  alunoId  Int @unique
+  alunoId  Int  @unique
 
   // Many:Many
   Materia Materia[]
 
   // Enums
   status Status @default(EM_ANDAMENTO)
-  turno     Turno
+  turno  Turno
 }
 
 model Materia {
@@ -458,16 +457,16 @@ model Ribbons {
 }
 
 model Usuarios {
-  id             Int       @id @default(autoincrement())
-  usuario        String    @unique
-  email          String    @unique
-  alcunha        String?
-  senha          String
-  bloqueado      Boolean?  @default(false)
-  userSetor      String?
-  strDataHora    DateTime?
-  Escola         Escola? @relation(fields: [escolaId], references: [id])
-  escolaId       Int?
+  id          Int       @id @default(autoincrement())
+  usuario     String    @unique
+  email       String    @unique
+  alcunha     String?
+  senha       String
+  bloqueado   Boolean?  @default(false)
+  userSetor   String?
+  strDataHora DateTime?
+  Escola      Escola?   @relation(fields: [escolaId], references: [id])
+  escolaId    Int?
 
   createdAt DateTime @default(now())
 

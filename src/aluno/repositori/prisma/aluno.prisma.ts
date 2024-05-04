@@ -36,7 +36,7 @@ export class AlunoRepositoryPrisma implements AlunoRepository {
      */
     async create(createAlunoDto: CreateAlunoDto, user: Usuarios): Promise<Aluno> {
         let aluno: Aluno | null = null;
-        const { Documentos, Convenio, Serie, Turma, AlunoTransferencia, Endereco, filiacao, ...alunoData } = createAlunoDto;
+        const { Documentos, Convenio, AlunoTransferencia, Endereco, filiacao, ...alunoData } = createAlunoDto;
         let data = alunoData as Aluno;
         let filiacoes: FiliacaoAluno[] = [];
         try {
@@ -72,13 +72,12 @@ export class AlunoRepositoryPrisma implements AlunoRepository {
      * @param data Os dados do aluno que foram utilizados durante a criação.
      * @param filiacoes As filiações de aluno que foram criadas.
      */
-    private async rollbackData(data: Aluno, filiacoes: FiliacaoAluno[]): Promise<void> {
+    private async rollbackData(data: Aluno, filiacoes: FiliacaoAluno[], user: Usuarios): Promise<void> {
         if (data.convenioId != null) { await this.covService.remove(data.convenioId); }
-        if (data.serieId != null) { await this.serieSevice.remove(data.serieId); }
         if (data.documentoId) { await this.docService.remove(data.documentoId); }
         if (data.alunoTransferenciaId != null) { await this.alTSevice.remove(data.alunoTransferenciaId); }
         if (data.enderecoId != null) { await this.enderecoService.remove(data.enderecoId); }
-        if (data.turmaId != null) { await this.turmaService.remove(data.turmaId); }
+        if (data.turmaId != null) { await this.turmaService.remove(data.turmaId, user); }
         if (filiacoes.length > 0) {
             await Promise.all(filiacoes.map(async (filiacao) => await this.filiacaoAlunoService.remove(filiacao.id)));
         }
@@ -97,7 +96,6 @@ export class AlunoRepositoryPrisma implements AlunoRepository {
                 Documentos = await this.docService.create(createAlunoDto.Documentos);
                 data.documentoId = Documentos.id
             }
-
             if (createAlunoDto.Convenio) {
                 const Convenio = await this.covService.create(createAlunoDto.Convenio);
                 data.convenioId = Convenio.id
@@ -108,21 +106,11 @@ export class AlunoRepositoryPrisma implements AlunoRepository {
                 data.alunoTransferenciaId = AlunoTransferencia.id
             }
 
-            if (createAlunoDto.Serie) {
-                const Serie = await this.serieSevice.create(createAlunoDto.Serie);
-                data.serieId = Serie.id
-            }
-
-            if (createAlunoDto.Turma) {
-                const Turma = await this.turmaService.create(createAlunoDto.Turma, user);
-                data.turmaId = Turma.id
-            }
-
             return data
         } catch (error) {
             // Handle error
-            if (Documentos) await this.docService.rollbackData(Documentos)
-            await this.rollbackData(data as Aluno, []);
+            if (Documentos) await this.docService.rollbackData(Documentos, user)
+            await this.rollbackData(data as Aluno, [], user);
             throw error;
         }
     }

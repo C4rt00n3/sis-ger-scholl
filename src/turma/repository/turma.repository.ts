@@ -16,28 +16,28 @@ export abstract class TurmaRepository {
      * @param updateTurmaDto Um objeto contendo os dados a serem atualizados na turma.
      * @returns Uma Promise que resolve com o objeto de turma atualizado.
      */
-    abstract update(id: number, updateTurmaDto: UpdateTurmaDto): Promise<Turma>
+    abstract update(id: number, updateTurmaDto: UpdateTurmaDto, user: Usuarios): Promise<Turma>
 
     /**
      * Retorna uma turma com base no ID fornecido.
      * @param id O ID da turma a ser encontrada.
      * @returns Uma Promise que resolve com o objeto de turma encontrado. Se nenhuma turma for encontrada com o ID fornecido, retorna null.
      */
-    abstract findOne(id: number): Promise<Turma>
+    abstract findOne(id: number, user: Usuarios): Promise<Turma>
 
     /**
      * Retorna todas as turmas de acordo com os filtros fornecidos.
      * @param filters Um objeto contendo os filtros para a busca das turmas.
      * @returns Uma Promise que resolve com uma matriz de objetos de turma que correspondem aos filtros fornecidos.
      */
-    abstract findAll(filters: {}): Promise<Turma[]>
+    abstract findAll(filters: {}, user: Usuarios): Promise<Turma[]>
 
     /**
      * Remove uma turma com base no ID fornecido.
      * @param id O ID da turma a ser removida.
      * @returns Uma Promise que resolve após a remoção da turma. Se nenhuma turma for encontrada com o ID fornecido, retorna null.
      */
-    abstract remove(id: number): Promise<void>
+    abstract remove(id: number, user: Usuarios): Promise<void>
 
     abstract analytics(): Promise<any>
 }

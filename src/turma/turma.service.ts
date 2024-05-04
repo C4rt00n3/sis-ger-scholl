@@ -21,8 +21,8 @@ export class TurmaService {
    * Retorna todas as turmas.
    * @returns Uma Promise que resolve com uma matriz de objetos de turma.
    */
-  async findAll(): Promise<Turma[]> {
-    return await this.turmaRepo.findAll({});
+  async findAll(user: Usuarios): Promise<Turma[]> {
+    return await this.turmaRepo.findAll({}, user);
   }
 
   /**
@@ -30,8 +30,8 @@ export class TurmaService {
    * @param id O ID da turma a ser encontrada.
    * @returns Uma Promise que resolve com o objeto de turma encontrado. Se nenhuma turma for encontrada com o ID fornecido, retorna null.
    */
-  async findOne(id: number) {
-    return await this.turmaRepo.findOne(id);
+  async findOne(id: number,user: Usuarios) {
+    return await this.turmaRepo.findOne(id, user);
   }
 
   /**
@@ -40,15 +40,15 @@ export class TurmaService {
    * @param updateTurmaDto Um objeto contendo os dados a serem atualizados na turma.
    * @returns Uma Promise que resolve com o objeto de turma atualizado.
    */
-  async update(id: number, updateTurmaDto: UpdateTurmaDto): Promise<Turma> {
-    return await this.turmaRepo.update(id, updateTurmaDto);
+  async update(id: number, updateTurmaDto: UpdateTurmaDto, user: Usuarios): Promise<Turma> {
+    return await this.turmaRepo.update(id, updateTurmaDto, user);
   }
 
   /**
    * Remove uma turma com base no ID fornecido.
    * @param id O ID da turma a ser removida.
    */
-  async remove(id: number): Promise<void> {
-    await this.turmaRepo.remove(id)
+  async remove(id: number, user: Usuarios): Promise<void> {
+    await this.turmaRepo.remove(id, user)
   }
 }

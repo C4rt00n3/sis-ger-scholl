@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseFilters, UseGuards } from '@nestjs/common';
 import { TurmaService } from './turma.service';
 import { CreateTurmaDto } from './dto/create-turma.dto';
 import { UpdateTurmaDto } from './dto/update-turma.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Usuarios } from '@prisma/client';
 import { GetUser } from '@SRC/auth/get-user.decorator';
+import { AuthGuard } from '@SRC/auth/auth.guard';
 
 @Controller('turma')
 @ApiTags("Turmas")
@@ -13,28 +14,32 @@ export class TurmaController {
   constructor(private readonly turmaService: TurmaService) {}
 
   @Post()
-
+  @UseGuards(AuthGuard)
   create(@Body() createTurmaDto: CreateTurmaDto,  @GetUser() user: Usuarios) {
     return this.turmaService.create(createTurmaDto, user);
   }
 
   @Get()
-  findAll() {
-    return this.turmaService.findAll();
+  @UseGuards(AuthGuard)
+  findAll(@GetUser() user: Usuarios) {
+    return this.turmaService.findAll(user);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.turmaService.findOne(+id);
+  @UseGuards(AuthGuard)
+  findOne(@Param('id') id: string, @GetUser() user: Usuarios) {
+    return this.turmaService.findOne(+id, user);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTurmaDto: UpdateTurmaDto) {
-    return this.turmaService.update(+id, updateTurmaDto);
+  @UseGuards(AuthGuard)
+  update(@Param('id') id: string, @Body() updateTurmaDto: UpdateTurmaDto, @GetUser() user: Usuarios) {
+    return this.turmaService.update(+id, updateTurmaDto, user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.turmaService.remove(+id);
+  @UseGuards(AuthGuard)
+  remove(@Param('id') id: string, @GetUser() user: Usuarios) {
+    return this.turmaService.remove(+id, user);
   }
 }

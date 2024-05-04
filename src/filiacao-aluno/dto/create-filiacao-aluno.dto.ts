@@ -11,7 +11,6 @@ export class CreateFiliacaoAlunoDto {
   @ApiProperty({ description: 'Número de celular da filiação do aluno', type: 'string', required: false })
   @IsOptional()
   @IsString()
-  @MinLength(11)
   celular?: string;
 
   @ApiProperty({ description: 'Endereço de e-mail da filiação do aluno', type: 'string', required: false })
@@ -23,11 +22,6 @@ export class CreateFiliacaoAlunoDto {
   @IsOptional()
   @IsEnum(GrauInstrucao)
   grauInstrucao?: GrauInstrucao;
-
-  @ApiProperty({description: "Telefone fixo da filiação do aluno", type: String, required: false})
-  @IsOptional()
-  @IsString()
-  telefoneFixo?: string;
 
   @ApiProperty({description: "Telefone do trabalho doa filiaçã do aluno.", required: false, type: String})
   @IsOptional()

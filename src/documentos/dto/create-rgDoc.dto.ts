@@ -7,8 +7,6 @@ export class CreateRgDto {
   @ApiProperty({ description: 'Número do RG' })
   @IsNotEmpty()  
   @IsString()
-  @MaxLength(10)
-  @MinLength(10) 
   rgNumero: string;
 
   @ApiProperty({ description: 'Número do CPF' })

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Serie, Turma } from '@prisma/client';
+import { Serie, Turma, Usuarios } from '@prisma/client';
 import { SerieRepository } from './repository/turma.repository';
 import { CreateSerieDto } from './dto/create-serie.dto';
 import { UpdateSerieDto } from './dto/update-serie.dto';
@@ -13,16 +13,16 @@ export class SerieService {
    * @param createSerieDto Um objeto contendo os dados necessários para criar uma nova serie.
    * @returns Uma Promise que resolve com o objeto de serie criado.
    */
-  async create(createSerieDto: CreateSerieDto): Promise<Serie> {
-    return await this.serieRepo.create(createSerieDto);
+  async create(createSerieDto: CreateSerieDto, user: Usuarios): Promise<Serie> {
+    return await this.serieRepo.create(createSerieDto, user);
   }
 
   /**
    * Retorna todas as serie.
    * @returns Uma Promise que resolve com uma matriz de objetos de serie.
    */
-  async findAll(): Promise<Serie[]> {
-    return await this.serieRepo.findAll({});
+  async findAll(user: Usuarios): Promise<Serie[]> {
+    return await this.serieRepo.findAll({}, user);
   }
 
   /**
@@ -30,8 +30,8 @@ export class SerieService {
    * @param id O ID da serie a ser encontrada.
    * @returns Uma Promise que resolve com o objeto de serie encontrado. Se nenhuma turma for encontrada com o ID fornecido, retorna null.
    */
-  async findOne(id: number) {
-    return await this.serieRepo.findOne(id);
+  async findOne(id: number, user: Usuarios) {
+    return await this.serieRepo.findOne(id, user);
   }
 
   /**
@@ -40,15 +40,15 @@ export class SerieService {
    * @param updateSerieDto Um objeto contendo os dados a serem atualizados na serie.
    * @returns Uma Promise que resolve com o objeto de turma atualizado.
    */
-  async update(id: number, updateSerieDto: UpdateSerieDto): Promise<Serie> {
-    return await this.serieRepo.update(id, updateSerieDto);
+  async update(id: number, updateSerieDto: UpdateSerieDto, user: Usuarios): Promise<Serie> {
+    return await this.serieRepo.update(id, updateSerieDto, user);
   }
 
   /**
    * Remove uma serie com base no ID fornecido.
    * @param id O ID da serie a ser removida.
    */
-  async remove(id: number): Promise<void> {
-    await this.serieRepo.remove(id)
+  async remove(id: number, user: Usuarios): Promise<void> {
+    await this.serieRepo.remove(id, user);
   }
 }

@@ -8,8 +8,8 @@ export class CreateSerieDto {
     @IsNotEmpty()
     nomeSerie: string;
 
-    @ApiProperty({ description: 'Nível escolar', type: 'string', default: 'Ensino Fundamental' })
-    @IsEnum(NivelEscolar)
+    @ApiProperty({ description: "Nivel escolar da turma", required: true, enum: NivelEscolar })
     @IsNotEmpty()
+    @IsEnum(NivelEscolar)
     nivelEscolar: NivelEscolar;
 }

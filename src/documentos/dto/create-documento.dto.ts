@@ -35,17 +35,11 @@ export class CreateDocumentoDto {
 
     @ApiProperty({ description: 'Dados da situação militar', type: CreateSituacaoMilitarDTO, required: false })
     @ValidateNested()
-    @IsDefined()
-    @IsNotEmptyObject()
-    @IsObject()
     @Type(() => CreateSituacaoMilitarDTO)
     SituacaoMilitar: CreateSituacaoMilitarDTO;
 
     @ApiProperty({ description: 'Dados do título eleitoral', type: CreateTituloEleitorDTO, required: false })
     @ValidateNested()
-    @IsDefined()
-    @IsNotEmptyObject()
-    @IsObject()
     @Type(() => CreateTituloEleitorDTO)
     TituloEleitor: CreateTituloEleitorDTO;
 }

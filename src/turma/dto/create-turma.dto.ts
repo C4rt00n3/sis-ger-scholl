@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { NivelEscolar } from "@prisma/client";
-import { IsEnum, IsNotEmpty, IsString } from "class-validator";
+import { IsEnum, IsInt, IsNotEmpty, IsString } from "class-validator";
 
 export class CreateTurmaDto {
   @ApiProperty({ description: 'Nome da turma', type: 'string', default: 'Turma A' })
@@ -8,9 +8,8 @@ export class CreateTurmaDto {
   @IsNotEmpty()
   nome: string;
 
-  @ApiProperty({ description: "Nivel escolar da turma", required: true, enum: NivelEscolar })
+  @ApiProperty({ description: "Serie da turma", required: true })
   @IsNotEmpty()
-  @IsEnum(NivelEscolar)
-  nivelEscolar: NivelEscolar;
-
+  @IsInt()
+  serieId: number;
 }

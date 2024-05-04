@@ -27,6 +27,7 @@ export class DocumentosRepositoryPrisma implements DocumentosRepository {
         let documentoData: Documento;
         try {
             documentoData = await this.createDocumentData(createDocumentoDto);
+            console.log(documentoData)
             return await this.prisma.documento.create({
                 data: {
                     ...documentoData,
@@ -66,54 +67,49 @@ export class DocumentosRepositoryPrisma implements DocumentosRepository {
      */
     private async createDocumentData(createDocumentDto: CreateDocumentoDto): Promise<Documento> {
         const { SituacaoMilitar, RG, SUS, TituloEleitor, ...document } = createDocumentDto;
-        const documentData = document as Documento;
-        try {
-            if (SUS) {
-                const sus = await this.createSus(SUS)
-                documentData.sUSId = sus.id;
-            }
-
-            if (SituacaoMilitar) {
-                const situacaoMilitar = await this.createSituacaoMilitar(SituacaoMilitar)
-                documentData.situacaoMilitarId = situacaoMilitar.id;
-            }
-
-            if (TituloEleitor) {
-                const tituloEleitor = await this.createTituloEleitor(TituloEleitor)
-                documentData.tituloEleitorId = tituloEleitor.id;
-            }
-
-            if (RG) {
-                const rg = await this.createRG({ ...RG })
-                documentData.rGId = rg.id
-            }
-
-            documentData.livro = createDocumentDto.livro;
-            documentData.folha = createDocumentDto.folha;
-
-            return documentData;
-        }catch(error){
-            return documentData
+        let documentData = document as Documento;
+        // console.log(RG, SUS, SituacaoMilitar,TituloEleitor)
+        if (SUS) {
+            const sus = await this.createSus(SUS)
+            documentData = { ...documentData, sUSId: sus.id }
         }
+
+        if (SituacaoMilitar) {
+            const situacaoMilitar = await this.createSituacaoMilitar(SituacaoMilitar)
+            documentData.situacaoMilitarId = situacaoMilitar.id;
+            documentData = { ...documentData, situacaoMilitarId: situacaoMilitar.id }
+        }
+
+        if (TituloEleitor) {
+            const tituloEleitor = await this.createTituloEleitor(TituloEleitor)
+            documentData = { ...documentData, tituloEleitorId: tituloEleitor.id }
+        }
+
+        if (RG) {
+            const rg = await this.createRG({ ...RG })
+            documentData = { ...documentData, rGId: rg.id }
+        }
+
+        return documentData;
     }
 
     private showErrors(error: any) {
         switch (error.code) {
             case 'P2002':
                 if (error.meta?.target?.includes('cpf')) {
-                    throw new Error('CPF já existe');
+                    throw new ConflictException('CPF já existe');
                 }
                 if (error.meta?.target?.includes('rg')) {
-                    throw new Error('RG já existe');
+                    throw new ConflictException('RG já existe');
                 }
                 if (error.meta?.target?.includes('inscricao')) {
-                    throw new Error('Inscrição do título de eleitor já existe');
+                    throw new ConflictException('Inscrição do título de eleitor já existe');
                 }
                 if (error.meta?.target?.includes('ra')) {
-                    throw new Error('RA já existe');
+                    throw new ConflictException('RA já existe');
                 }
                 if (error.meta?.target?.includes('cpf')) {
-                    throw new Error('CPF já existe');
+                    throw new ConflictException('CPF já existe');
                 }
                 if (error.meta?.target?.includes('numero')) {
                     throw new ConflictException('Número do SUS já existe');
