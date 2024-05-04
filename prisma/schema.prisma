@@ -3,51 +3,50 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model Escola {
-  id                      Int     @id() @default(autoincrement())
-  Nome_Escola             String? @db.VarChar(150)
-  nomeFantazia            String? @db.VarChar(150)
-  Endereco_Escola         String?
-  EntidadeMatenedora      String? @db.VarChar(100)
-  Secretaria              String? @db.VarChar(100)
-  CNPJ_Escola             String?
-  CadastroMEC             String? @db.VarChar(30)
-  LocalFotoEscola         String? @db.VarChar(70)
-  NomeFotoEscola          String?
-  Diretor                 String?
-  Secretario              String?
-  CoordPedag              String?
-  LocalFotoAluno          String? @db.VarChar(200)
-  Config_Servidor         String? @db.VarChar(200)
-  Email_Escola            String?
-  Pagina_RedeSocialEscola String?
-  DocAut_dir              String?
-  DocAut_Sec              String?
-  Tipo_Escola             String?
-  NivelEscolar            String?
+  id                       Int          @id @default(autoincrement())
+  nome                     String       @db.VarChar(150) // Nome completo da escola
+  nomeFantasia             String?      @db.VarChar(150) // Nome fantasia da escola (opcional)
+  entidadeMantenedora      String?      @db.VarChar(100) // Entidade mantenedora da escola (opcional)
+  secretaria               String?      @db.VarChar(100) // Secretaria da escola (opcional)
+  cnpj                     String       @db.VarChar(20) // CNPJ da escola (opcional)
+  cadastroMEC              String?      @db.VarChar(30) // Cadastro do MEC da escola (opcional)
+  fotoEscola               String?      @db.VarChar(200) // URL da foto da escola (opcional)
+  nomeFotoEscola           String? // Nome da foto da escola (opcional)
+  diretor                  String? // Nome do diretor da escola (opcional)
+  secretario               String? // Nome do secretário da escola (opcional)
+  coordPedagogico          String? // Nome do coordenador pedagógico da escola (opcional)
+  email                    String? // Email da escola (opcional)
+  paginaRedeSocial         String? // Página da escola em rede social (opcional)
+  docAutorizacaoDiretor    String?      @db.VarChar(200) // Documento de autorização do diretor (opcional)
+  docAutorizacaoSecretario String?      @db.VarChar(200) // Documento de autorização do secretário (opcional)
+  nivel                    NivelEscolar // Nível escolar
 
-  matricula Matricula?
-  endereco  Endereco   @relation(fields: [enderecoId], references: [id])
+  endereco   Endereco? @relation(fields: [enderecoId], references: [id])
+  enderecoId Int       @unique
 
-  enderecoId Int @unique
-
-  Turma          Turma[]
-  Funcionario    Funcionario[]
-  Tbl_FuncDet    Tbl_FuncDet[]
+  series               Serie[]
+  Matriculas           Matricula[]
+  funcionarios         Funcionario[]
+  funcionarioDetalhes  FuncionarioDetalhe[]
+  alunos               Aluno[]
+  AlunoTransferencia   AlunoTransferencia?  @relation(fields: [alunoTransferenciaId], references: [id])
+  alunoTransferenciaId Int?                 @unique()
+  Usuarios             Usuarios[]
 }
 
 model Endereco {
-  id          Int     @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   logradouro  String
   numero      String
   complemento String?
   bairro      String
   cidade      String
-  estado      String
+  estado      EstadoBrasil
   cep         String
 
   Parada   Parada? @relation(fields: [paradaId], references: [id])
@@ -55,7 +54,10 @@ model Endereco {
 
   TranspEscolar TranspEscolar[]
 
-  Escola Escola?
+  Escola               Escola?
+  Aluno                Aluno?
+  AlunoTransferencia   AlunoTransferencia? @relation(fields: [alunoTransferenciaId], references: [id])
+  alunoTransferenciaId Int?
 }
 
 model Funcionario {
@@ -83,22 +85,15 @@ model Aluno {
   id Int @id @default(autoincrement())
 
   // Rows
-  nome               String   @unique()
-  dtNasc_Aluno       DateTime
-  localNascAluno     String
-  cidade_Aluno       String?
-  UF_Aluno           String?
-  email              String?
-  mudancaNome        String?
-  procedAluno        String?
-  docPendentesSimNao Boolean? @default(false)
-  docPendentes       String?
-  ficheiro           String?
-  alimentos          String?
-  localFotoAluno     String?
-  areaProtecaoGov    String?
-  data_Registro      DateTime
-  ssma_TimeStamp     DateTime
+  celularAluno    String?
+  nome            String   @unique()
+  email           String?
+  mudancaNome     String?
+  procedAluno     String?
+  ficheiro        String?
+  alimentos       String?
+  areaProtecaoGov String?
+  data_Registro   DateTime @default(now())
 
   // Enums
   corRaca_Aluno CorRaca
@@ -106,11 +101,9 @@ model Aluno {
 
   // ForingKeys
   convenioId           Int? @unique
-  situacaoEleitoralId  Int? @unique
   documentoId          Int? @unique
-  situacaoMilitarId    Int? @unique
   alunoTransferenciaId Int? @unique
-  enderecoId           Int? @unique
+  enderecoId           Int  @unique
 
   // Many:Many
   obsNotificadasEscola Ocorrencias[]
@@ -118,12 +111,18 @@ model Aluno {
   filiacao             FiliacaoAluno[]
 
   // Relações 
-  Documento          Documento?          @relation(fields: [documentoId], references: [id])
-  SituacaoEleitoral  SituacaoEleitoral?  @relation(fields: [situacaoEleitoralId], references: [id])
-  Covenio            Convenio?           @relation(fields: [convenioId], references: [id])
-  SituacaoMilitar    SituacaoMilitar?    @relation(fields: [situacaoMilitarId], references: [id])
-  AlunoTransferencia AlunoTransferencia? @relation(fields: [alunoTransferenciaId], references: [id])
+  Documentos         Documento?          @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+  Convenio           Convenio?           @relation(fields: [convenioId], references: [id], onDelete: Cascade)
+  AlunoTransferencia AlunoTransferencia? @relation(fields: [alunoTransferenciaId], references: [id], onDelete: Cascade)
+  Endereco           Endereco            @relation(fields: [enderecoId], references: [id], onDelete: Cascade)
   Matricula          Matricula?
+  Escola             Escola?             @relation(fields: [escolaId], references: [id])
+  escolaId           Int?
+
+  Serie   Serie  @relation(fields: [serieId], references: [id])
+  serieId Int
+  Turma   Turma? @relation(fields: [turmaId], references: [id])
+  turmaId Int?
 }
 
 model MedicamentosAlergia {
@@ -134,21 +133,103 @@ model MedicamentosAlergia {
   alunoId        Int?
 }
 
+model Images {
+  id                Int              @id @default(autoincrement())
+  imagem            Bytes
+  RG                RG?              @relation(fields: [rGId], references: [id])
+  rGId              Int?
+  SUS               SUS?             @relation(fields: [sUSId], references: [id])
+  sUSId             Int?
+  TituloEleitor     TituloEleitor?   @relation(fields: [tituloEleitorId], references: [id])
+  tituloEleitorId   Int?
+  SituacaoMilitar   SituacaoMilitar? @relation(fields: [situacaoMilitarId], references: [id])
+  situacaoMilitarId Int?
+}
+
+model SUS {
+  id         Int        @id @default(autoincrement())
+  nome       String
+  nascimento DateTime
+  sexo       Sexo
+  numero     String     @unique @db.VarChar(15)
+  images     Images[]
+  Documento  Documento?
+}
+
+model TituloEleitor {
+  id        Int    @id @default(autoincrement())
+  nome      String
+  inscricao String @unique @db.VarChar(12)
+
+  dataNascimento DateTime
+  dataEmissao    DateTime
+
+  pai String?
+  mae String?
+
+  zona  Int
+  secao Int
+
+  Images    Images[]
+  Documento Documento?
+}
+
+model SituacaoMilitar {
+  id              Int    @id @default(autoincrement())
+  tipoDeDocumento String
+  ra              String @unique @db.VarChar(12)
+  cpf             String @unique @db.VarChar(11)
+  nome            String
+
+  pai String
+  mae String
+
+  localNascimento String
+  dataNascimento  DateTime
+
+  situacaoServicoMilitar String
+
+  validade DateTime?
+
+  Documento Documento?
+  Images    Images[]
+}
+
+model RG {
+  id             Int        @id @default(autoincrement())
+  rgNumero       String     @unique
+  cpf            String     @unique
+  dataExpedicao  DateTime?
+  dataNascimento DateTime
+  orgaoEmissor   String
+  UF             String
+  mae            String?
+  pai            String?
+  naturalidade   String
+  docOrigem      String
+  images         Images[]
+  Documento      Documento?
+  documentoId    Int?
+
+  @@map("rg")
+}
+
 model Documento {
-  id             Int       @id @default(autoincrement())
-  NrRegistro     String
-  livro          String
-  folha          String
-  dataRegistro   DateTime?
-  cartorio       String
-  UF_Cartorio    String
-  RG             String
-  dataExpRG      DateTime?
-  orgaoEmissorRG String
-  UF_RG          String
-  CPF            String
-  cartaoSUS      String
-  Aluno          Aluno?
+  id    Int     @id @default(autoincrement())
+  livro String?
+  folha String?
+
+  rGId              Int? @unique
+  sUSId             Int? @unique
+  tituloEleitorId   Int? @unique
+  situacaoMilitarId Int? @unique
+
+  RG              RG?              @relation(fields: [rGId], references: [id], onDelete: Cascade)
+  SUS             SUS?             @relation(fields: [sUSId], references: [id], onDelete: Cascade)
+  TituloEleitor   TituloEleitor?   @relation(fields: [tituloEleitorId], references: [id], onDelete: Cascade)
+  SituacaoMilitar SituacaoMilitar? @relation(fields: [situacaoMilitarId], references: [id], onDelete: Cascade)
+
+  Aluno Aluno?
 }
 
 model Convenio {
@@ -162,96 +243,50 @@ model Convenio {
 }
 
 model FiliacaoAluno {
-  id               Int    @id @default(autoincrement())
-  Nome             String
-  Celular          String
-  TelefoneFixo     String
-  TelefoneTrabalho String
-  Profissao        String
-  RG               String
-  Email            String
-  GrauInstrucao    String
-  LocalTrabalho    String
-  UF               String
-  OrgaoEmissor     String
-  Endereco         String
-  alunoId          Int?
-  Aluno            Aluno? @relation(fields: [alunoId], references: [id])
-}
+  id               Int            @id @default(autoincrement())
+  nome             String
+  celular          String?
+  telefoneTrabalho String?        @db.VarChar(11)
+  profissao        String?
+  RG               String?        @db.VarChar(11)
+  email            String?
+  grauInstrucao    GrauInstrucao?
 
-model SituacaoMilitar {
-  id              Int    @id @default(autoincrement())
-  Serie           String
-  AlunoReservista String
-  Categoria       String
-  Aluno           Aluno?
-}
+  alunoId Int?
 
-model SituacaoEleitoral {
-  id        Int    @id @default(autoincrement())
-  TituloNr  String
-  Zona      String
-  Secao     String
-  Municipio String
-  UF        String
-  Aluno     Aluno?
-}
-
-model OrigemAluno {
-  id Int @id @default(autoincrement())
+  Aluno Aluno? @relation(fields: [alunoId], references: [id])
 }
 
 model AlunoTransferencia {
-  id            Int    @id @default(autoincrement())
-  EscolaProc    String
-  Cidade        String
-  UF            String
-  SitCurricular String
-  Aluno         Aluno?
+  id Int @id @default(autoincrement())
 
-  Nr_Aluno                   Int?
-  End_Aluno                  String?   @db.VarChar(120)
-  Numero                     String?   @db.VarChar(15)
-  DiasLetivos                Int?
-  ProcedAluno                String?
-  AlunosTransf_EscolaProc    String?
-  AlunosTransf_Cidade        String?
-  AlunosTransf_UF            String?
-  AlunosTransf_SitCurricular String?
-  Aluno_TranspTipo           String?
-  Aluno_TransRota            String?
-  Aluno_TransEmbarque        String?
+  procedencia String
+
+  Aluno       Aluno?
+  Escola      Escola?
+  MotivoSaida MotivoSaida?
+  Endereco    Endereco[]
 }
 
 model Serie {
-  id           Int        @id() @default(autoincrement())
-  Nome_Serie   String?    @db.VarChar(100)
-  nivelEscolar String?    @db.VarChar(50)
-  Matricula    Matricula?
+  id        Int     @id() @default(autoincrement())
+  nomeSerie String  @db.VarChar(100)
+  Escola    Escola? @relation(fields: [escolaId], references: [id])
+  nivelEscolar NivelEscolar
+  escolaId  Int?
+  turmas    Turma[]
+  Aluno     Aluno[]
 }
 
 model Turma {
-  id          Int        @id() @default(autoincrement())
-  Escola      Escola     @relation(fields: [escolaId], references: [id])
-  Nome_Turmas String?    @db.VarChar(100)
-  Matricula   Matricula?
-  escolaId    Int
-
-  @@index([id])
+  id           Int          @id() @default(autoincrement())
+  nome         String       @db.VarChar(100)
+  Alunos       Aluno[]
+  Serie        Serie?       @relation(fields: [serieId], references: [id])
+  serieId      Int?
 }
 
-model Turnos {
-  id            Int     @id() @default(autoincrement())
-  Nome_Turno    Turno
-  Horario_Turno String? @db.VarChar(20)
-
-  Rota      Rota?
-  Matricula Matricula?
-
-  @@index([id])
-}
-
-model Tbl_FuncDet {
+model FuncionarioDetalhe {
   id             Int       @id() @default(autoincrement())
   escolaId       Int       @unique
   Escola         Escola?   @relation(fields: [escolaId], references: [id])
@@ -288,7 +323,6 @@ model Ocorrencias {
 
 model TranspEscolar {
   id              Int    @id @default(autoincrement())
-  Rotas           Rota[]
   Moto_Nome       String
   Moto_Fone       String
   Moto_CNH        String
@@ -305,19 +339,17 @@ model TranspEscolar {
 
   // o indece 0 referece ao motorista e o indece 1 ao propietario
   Moto_Endereco Endereco[]
-
-  @@index([id])
+  Rotas         Rota[]
 }
 
 model Rota {
   id   Int    @id @default(autoincrement())
   nome String
 
-  turno         Turnos        @relation(fields: [turnoId], references: [id])
-  TranspEscolar TranspEscolar @relation(fields: [transpEscolarId], references: [id])
+  turno Turno
 
-  transpEscolarId Int @unique
-  turnoId         Int @unique
+  TranspEscolar TranspEscolar[]
+  paradas       Parada[]
 }
 
 model Parada {
@@ -325,13 +357,15 @@ model Parada {
   nome     String
   horario  String
   endereco Endereco[]
+  Rota     Rota?      @relation(fields: [rotaId], references: [id])
+  rotaId   Int?
 }
 
 model MotivoSaida {
-  id          Int        @id() @default(autoincrement())
-  Cod_Escola  String?
-  motivoSaida String?    @db.VarChar(80)
-  Matricula   Matricula?
+  id                   Int                @id() @default(autoincrement())
+  motivoSaida          String             @db.VarChar(80)
+  AlunoTransferencia   AlunoTransferencia @relation(fields: [alunoTransferenciaId], references: [id])
+  alunoTransferenciaId Int                @unique()
 
   @@index([id])
 }
@@ -341,44 +375,33 @@ model Matricula {
   id Int @id @default(autoincrement())
 
   // Rows
-  Dt_Matricula               DateTime  @default(now())
-  AnoLetivo                  Int
-  Nivel                      String?   @db.VarChar(50)
-  horarioAulaID              String?   @db.VarChar(30)
-  
-  HorasAnual                 String?
-  Frequencia                 Float?
-  dataSaida                  DateTime?
+  dt_Matricula DateTime     @default(now())
+  anoLetivo    Int
+  nivel        NivelEscolar
 
-  Resultado_Final String?  @map("Resultado Final")
-  LocalFotoAluno  String?
-  Dt_Alteracao    String?
-  SSMA_TimeStamp  DateTime
+  horasAnual String?
+  frequencia Float?
+  dataSaida  DateTime?
+
+  resultadoFinal String?
+  localFotoAluno String?
+  dt_Alteracao   DateTime @updatedAt
+  ceratedAt      DateTime @default(now())
 
   // Relações One:One
-  Aluno       Aluno        @relation(fields: [alunoId], references: [id])
-  Turma       Turma?       @relation(fields: [turmaId], references: [id])
-  Serie       Serie        @relation(fields: [serieId], references: [id])
-  motivoSaida MotivoSaida? @relation(fields: [motivoSaidaID], references: [id])
-  Escola      Escola       @relation(fields: [escolaId], references: [id])
-  Turno       Turnos       @relation(fields: [turnosId], references: [id])
+  Aluno  Aluno   @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  Escola Escola? @relation(fields: [escolaId], references: [id])
 
   // Foringkeys
-  serieId       Int  @unique
-  turmaId       Int? @unique
-  motivoSaidaID Int? @unique
-  escolaId      Int  @unique
-  turnosId      Int  @unique
-  alunoId       Int  @unique
+  escolaId Int?
+  alunoId  Int  @unique
 
   // Many:Many
   Materia Materia[]
 
   // Enums
-  Resultado Resultado
-
-  @@index([horarioAulaID])
-  @@index([motivoSaidaID])
+  status Status @default(EM_ANDAMENTO)
+  turno  Turno
 }
 
 model Materia {
@@ -434,26 +457,29 @@ model Ribbons {
 }
 
 model Usuarios {
-  idusuario      Int       @id @default(autoincrement())
-  usuario        String
-  alcunha        String?
-  senha          String
-  bloqueado      Boolean?  @default(false)
-  userSetor      String?
-  strDataHora    DateTime?
-  SSMA_TimeStamp DateTime
+  id          Int       @id @default(autoincrement())
+  usuario     String    @unique
+  email       String    @unique
+  alcunha     String?
+  senha       String
+  bloqueado   Boolean?  @default(false)
+  userSetor   String?
+  strDataHora DateTime?
+  Escola      Escola?   @relation(fields: [escolaId], references: [id])
+  escolaId    Int?
 
-  @@index([idusuario], map: "tblUsuários$IdUsuario")
-  @@map("tblUsuários")
+  createdAt DateTime @default(now())
+
+  @@index([id])
 }
 
 enum Turno {
-  Noite
-  Manha
-  Tarde
+  Matutino
+  Vespertino
+  Noturno
 }
 
-enum Resultado {
+enum Status {
   ATIVO
   DESATIVADO
   EM_ANDAMENTO
@@ -470,4 +496,58 @@ enum Sexo {
   Feminino
   Masculino
   Outro
+}
+
+enum EstadoBrasil {
+  AC
+  AL
+  AP
+  AM
+  BA
+  CE
+  DF
+  ES
+  GO
+  MA
+  MT
+  MS
+  MG
+  PA
+  PB
+  PR
+  PE
+  PI
+  RJ
+  RN
+  RS
+  RO
+  RR
+  SC
+  SP
+  SE
+  TO
+}
+
+enum TipoSangue {
+  A_POSITIVO
+  A_NEGATIVO
+  B_POSITIVO
+  B_NEGATIVO
+  AB_POSITIVO
+  AB_NEGATIVO
+  O_POSITIVO
+  O_NEGATIVO
+}
+
+enum NivelEscolar {
+  ENSINO_FUNDAMENTAL
+  ENSINO_MEDIO
+  ENSINO_SUPERIOR
+}
+
+enum GrauInstrucao {
+  FUNDAMENTAL
+  MEDIO
+  SUPERIOR
+  POS_GRADUACAO
 }
